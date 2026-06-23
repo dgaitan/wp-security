@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name: WP Security
- * Plugin URI:  https://github.com/davidgaitan/wp-security
- * Description: An all-in-one auditing suite that inspects a WordPress installation across nine domains and surfaces prioritized, actionable findings through a React-powered dashboard.
+ * Plugin URI:  https://github.com/dgaitan/wp-security
+ * Description: An all-in-one auditing suite that inspects a WordPress installation across nine domains and surfaces prioritized, actionable findings through a powered dashboard.
  * Version:     0.1.0
  * Author:      David Gaitan
  * Author URI:  https://profiles.wordpress.org/david-gaitan/
