@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace WPSecurity;
 
 use WPSecurity\Container\Container;
+use WPSecurity\Container\CoreServiceProvider;
 use WPSecurity\Container\ServiceProvider;
 
 /**
@@ -20,85 +21,81 @@ use WPSecurity\Container\ServiceProvider;
  */
 final class Plugin {
 
-    private static ?self $instance = null;
+	private static ?self $instance = null;
 
-    private Container $container;
+	private Container $container;
 
-    private bool $booted = false;
+	private bool $booted = false;
 
-    private function __construct() {
-        $this->container = new Container();
-    }
+	private function __construct() {
+		$this->container = new Container();
+	}
 
-    public static function instance(): self {
-        if ( null === self::$instance ) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
 
-    /**
-     * Register all service providers and then register WP hooks.
-     * Safe to call multiple times — boots only once.
-     */
-    public function boot(): void {
-        if ( $this->booted ) {
-            return;
-        }
+	/**
+	 * Register all service providers and then register WP hooks.
+	 * Safe to call multiple times — boots only once.
+	 */
+	public function boot(): void {
+		if ( $this->booted ) {
+			return;
+		}
 
-        $this->registerProviders();
-        $this->registerHooks();
+		$this->registerProviders();
+		$this->registerHooks();
 
-        $this->booted = true;
-    }
+		$this->booted = true;
+	}
 
-    /**
-     * Retrieve a resolved service from the container.
-     *
-     * @template T
-     * @param class-string<T> $id
-     * @return T
-     */
-    public function make( string $id ): mixed {
-        return $this->container->get( $id );
-    }
+	/**
+	 * Retrieve a resolved service from the container.
+	 *
+	 * @template T
+	 * @param class-string<T> $id
+	 * @return T
+	 */
+	public function make( string $id ): mixed {
+		return $this->container->get( $id );
+	}
 
-    // -------------------------------------------------------------------------
-    // Activation / deactivation (called from plugin bootstrap, not from here).
-    // -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+	// Activation / deactivation (called from plugin bootstrap, not from here).
+	// -------------------------------------------------------------------------
 
-    public static function activate(): void {
-        // TODO Sprint 2: run dbDelta migrations, schedule recurring scan action.
-        flush_rewrite_rules();
-    }
+	public static function activate(): void {
+		// TODO Sprint 2: run dbDelta migrations, schedule recurring scan action.
+		flush_rewrite_rules();
+	}
 
-    public static function deactivate(): void {
-        // TODO Sprint 2: unschedule recurring Action Scheduler actions.
-        flush_rewrite_rules();
-    }
+	public static function deactivate(): void {
+		// TODO Sprint 2: unschedule recurring Action Scheduler actions.
+		flush_rewrite_rules();
+	}
 
-    // -------------------------------------------------------------------------
-    // Internals
-    // -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+	// Internals
+	// -------------------------------------------------------------------------
 
-    private function registerProviders(): void {
-        $providers = [
-            // TODO Sprint 1: add service providers as they are created.
-            // Admin\AdminServiceProvider::class,
-            // Rest\RestServiceProvider::class,
-            // Scanning\ScanningServiceProvider::class,
-        ];
+	private function registerProviders(): void {
+		// Feature providers (Admin, Rest, Scanning) are appended here as their sprints land.
+		$providers = [
+			CoreServiceProvider::class,
+		];
 
-        foreach ( $providers as $providerClass ) {
-            /** @var ServiceProvider $provider */
-            $provider = new $providerClass( $this->container );
-            $provider->register();
-        }
-    }
+		foreach ( $providers as $providerClass ) {
+			/** @var ServiceProvider $provider */
+			$provider = new $providerClass( $this->container );
+			$provider->register();
+		}
+	}
 
-    private function registerHooks(): void {
-        // TODO Sprint 1+: resolve registered services and attach WP hooks.
-        // e.g. add_action( 'rest_api_init', [ $this->make( Rest\Router::class ), 'register' ] );
-        // e.g. add_action( 'admin_menu',    [ $this->make( Admin\AdminPage::class ), 'register' ] );
-    }
+	private function registerHooks(): void {
+		// Resolved services attach their WordPress hooks here as feature areas land.
+	}
 }

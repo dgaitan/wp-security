@@ -28,40 +28,30 @@ use WPSecurity\Contracts\Module;
  */
 class ServerModule implements Module {
 
-    public function id(): string {
-        return 'server';
-    }
+	public function id(): string {
+		return 'server';
+	}
 
-    public function label(): string {
-        return __( 'Server Health', 'wp-security' );
-    }
+	public function label(): string {
+		return __( 'Server Health', 'wp-security' );
+	}
 
-    public function icon(): string {
-        return 'dashicons-desktop';
-    }
+	public function icon(): string {
+		return 'dashicons-desktop';
+	}
 
-    /**
-     * @return iterable<\WPSecurity\Contracts\Check>
-     */
-    public function checks(): iterable {
-        $checks = [];
+	/**
+	 * @return iterable<\WPSecurity\Contracts\Check>
+	 */
+	public function checks(): iterable {
+		// Built-in Check instances are added in Sprint 4 (see the class docblock for the planned list).
+		$checks = [];
 
-        // TODO Sprint 4: add Check instances.
-        // $checks[] = new Checks\PhpVersionCheck();
-        // $checks[] = new Checks\MemoryLimitCheck();
-        // $checks[] = new Checks\RequiredExtensionsCheck();
-        // $checks[] = new Checks\OpcacheCheck();
-        // $checks[] = new Checks\ObjectCacheCheck();
-        // $checks[] = new Checks\HttpsCheck();
-        // $checks[] = new Checks\CronModeCheck();
-        // $checks[] = new Checks\DiskSpaceCheck();
-        // $checks[] = new Checks\WritePermissionsCheck();
-
-        /**
-         * Allow third-party code to add checks to the Server module.
-         *
-         * @param array<\WPSecurity\Contracts\Check> $checks
-         */
-        return apply_filters( 'wp_security/checks/server', $checks );
-    }
+		/**
+		 * Allow third-party code to add checks to the Server module.
+		 *
+		 * @param array<\WPSecurity\Contracts\Check> $checks
+		 */
+		return apply_filters( 'wp_security/checks/server', $checks );
+	}
 }

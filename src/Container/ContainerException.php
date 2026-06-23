@@ -4,14 +4,14 @@ declare( strict_types=1 );
 
 namespace WPSecurity\Container;
 
+use Psr\Container\ContainerExceptionInterface;
 use RuntimeException;
 
 /**
- * Thrown when the container cannot resolve a binding.
+ * Thrown when the container encounters an error while resolving a binding.
  *
- * Implements Psr\Container\ContainerExceptionInterface once psr/container
- * is installed via Composer (Sprint 1).
- *
- * TODO Sprint 1: add `implements \Psr\Container\ContainerExceptionInterface`.
+ * Implements the PSR-11 ContainerExceptionInterface so consumers can catch
+ * container errors against the standard interface rather than this concrete
+ * class.
  */
-class ContainerException extends RuntimeException {}
+class ContainerException extends RuntimeException implements ContainerExceptionInterface {}

@@ -17,22 +17,22 @@ use WPSecurity\Domain\Finding;
  */
 interface Check {
 
-    /**
-     * Stable, dot-namespaced identifier, e.g. "server.php_version".
-     * Must be unique across the entire plugin.
-     */
-    public function id(): string;
+	/**
+	 * Stable, dot-namespaced identifier, e.g. "server.php_version".
+	 * Must be unique across the entire plugin.
+	 */
+	public function id(): string;
 
-    /**
-     * Human-readable label shown in the findings list, e.g. "PHP Version".
-     */
-    public function label(): string;
+	/**
+	 * Human-readable label shown in the findings list, e.g. "PHP Version".
+	 */
+	public function label(): string;
 
-    /**
-     * Execute the check and return its result.
-     *
-     * Implementations must not throw; return a Finding with Status::SKIPPED
-     * and a description of the failure if the check cannot run.
-     */
-    public function run( Context $context ): Finding;
+	/**
+	 * Execute the check and return its result.
+	 *
+	 * Implementations must not throw; return a Finding with Status::SKIPPED
+	 * and a description of the failure if the check cannot run.
+	 */
+	public function run( Context $context ): Finding;
 }

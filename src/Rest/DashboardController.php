@@ -21,26 +21,28 @@ use WP_REST_Response;
  */
 class DashboardController extends AbstractController {
 
-    public function register(): void {
-        register_rest_route(
-            self::NAMESPACE,
-            '/dashboard',
-            [
-                'methods'             => 'GET',
-                'callback'            => [ $this, 'get' ],
-                'permission_callback' => [ $this, 'permissionCheck' ],
-            ]
-        );
-    }
+	public function register(): void {
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'get' ],
+				'permission_callback' => [ $this, 'permissionCheck' ],
+			]
+		);
+	}
 
-    public function get( WP_REST_Request $request ): WP_REST_Response {
-        // TODO Sprint 3.
-        return $this->respond( [
-            'overall_score' => null,
-            'module_scores' => [],
-            'top_findings'  => [],
-            'last_scan_at'  => null,
-            'trend'         => [],
-        ] );
-    }
+	public function get( WP_REST_Request $request ): WP_REST_Response {
+		// TODO Sprint 3.
+		return $this->respond(
+			[
+				'overall_score' => null,
+				'module_scores' => [],
+				'top_findings'  => [],
+				'last_scan_at'  => null,
+				'trend'         => [],
+			]
+		);
+	}
 }

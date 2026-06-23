@@ -14,19 +14,19 @@ namespace WPSecurity\Domain;
  * SKIPPED  — the check could not run (missing dependency, unsupported env).
  */
 enum Status: string {
-    case PASS    = 'pass';
-    case WARN    = 'warn';
-    case FAIL    = 'fail';
-    case INFO    = 'info';
-    case SKIPPED = 'skipped';
+	case PASS    = 'pass';
+	case WARN    = 'warn';
+	case FAIL    = 'fail';
+	case INFO    = 'info';
+	case SKIPPED = 'skipped';
 
-    /**
-     * Whether this status contributes a penalty to the score.
-     */
-    public function affectsScore(): bool {
-        return match ( $this ) {
-            self::WARN, self::FAIL => true,
-            default                => false,
-        };
-    }
+	/**
+	 * Whether this status contributes a penalty to the score.
+	 */
+	public function affectsScore(): bool {
+		return match ( $this ) {
+			self::WARN, self::FAIL => true,
+			default                => false,
+		};
+	}
 }

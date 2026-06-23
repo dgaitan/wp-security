@@ -13,11 +13,11 @@ namespace WPSecurity\Container;
  */
 abstract class ServiceProvider {
 
-    public function __construct( protected Container $container ) {}
+	public function __construct( protected Container $container ) {}
 
-    /**
-     * Register bindings into the container.
-     * Must not have side effects (no WordPress hooks here — that happens in boot()).
-     */
-    abstract public function register(): void;
+	/**
+	 * Register bindings into the container.
+	 * Must not have side effects (no WordPress hooks here — that happens in boot()).
+	 */
+	abstract public function register(): void;
 }

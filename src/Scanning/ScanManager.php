@@ -22,21 +22,25 @@ use WPSecurity\Contracts\Scanner;
  */
 class ScanManager implements Scanner {
 
-    public function scanAll(): int {
-        // TODO Sprint 2.
-        throw new \RuntimeException( 'ScanManager::scanAll() not yet implemented.' );
-    }
+	public function scanAll(): int {
+		// TODO Sprint 2.
+		throw new \RuntimeException( 'ScanManager::scanAll() not yet implemented.' );
+	}
 
-    public function scanModule( string $moduleId ): int {
-        // TODO Sprint 2.
-        throw new \RuntimeException( 'ScanManager::scanModule() not yet implemented.' );
-    }
+	public function scanModule( string $moduleId ): int {
+		// TODO Sprint 2.
+		throw new \RuntimeException( 'ScanManager::scanModule() not yet implemented.' );
+	}
 
-    /**
-     * @return array{ status: string, progress: int, total: int }
-     */
-    public function status( int $runId ): array {
-        // TODO Sprint 2.
-        return [ 'status' => 'unknown', 'progress' => 0, 'total' => 0 ];
-    }
+	/**
+	 * @return array{ status: string, progress: int, total: int }
+	 */
+	public function status( int $runId ): array {
+		// TODO Sprint 2.
+		return [
+			'status'   => 'unknown',
+			'progress' => 0,
+			'total'    => 0,
+		];
+	}
 }

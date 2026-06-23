@@ -19,56 +19,56 @@ use WP_Error;
  */
 class ModulesController extends AbstractController {
 
-    public function register(): void {
-        register_rest_route(
-            self::NAMESPACE,
-            '/modules',
-            [
-                'methods'             => 'GET',
-                'callback'            => [ $this, 'index' ],
-                'permission_callback' => [ $this, 'permissionCheck' ],
-            ]
-        );
+	public function register(): void {
+		register_rest_route(
+			self::NAMESPACE,
+			'/modules',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'index' ],
+				'permission_callback' => [ $this, 'permissionCheck' ],
+			]
+		);
 
-        register_rest_route(
-            self::NAMESPACE,
-            '/modules/(?P<id>[a-z_]+)/findings',
-            [
-                'methods'             => 'GET',
-                'callback'            => [ $this, 'findings' ],
-                'permission_callback' => [ $this, 'permissionCheck' ],
-                'args'                => [
-                    'id' => [
-                        'type'              => 'string',
-                        'sanitize_callback' => 'sanitize_key',
-                    ],
-                ],
-            ]
-        );
+		register_rest_route(
+			self::NAMESPACE,
+			'/modules/(?P<id>[a-z_]+)/findings',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'findings' ],
+				'permission_callback' => [ $this, 'permissionCheck' ],
+				'args'                => [
+					'id' => [
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_key',
+					],
+				],
+			]
+		);
 
-        register_rest_route(
-            self::NAMESPACE,
-            '/findings/external',
-            [
-                'methods'             => 'POST',
-                'callback'            => [ $this, 'ingestExternal' ],
-                'permission_callback' => [ $this, 'permissionCheck' ],
-            ]
-        );
-    }
+		register_rest_route(
+			self::NAMESPACE,
+			'/findings/external',
+			[
+				'methods'             => 'POST',
+				'callback'            => [ $this, 'ingestExternal' ],
+				'permission_callback' => [ $this, 'permissionCheck' ],
+			]
+		);
+	}
 
-    public function index( WP_REST_Request $request ): WP_REST_Response {
-        // TODO Sprint 3.
-        return $this->respond( [] );
-    }
+	public function index( WP_REST_Request $request ): WP_REST_Response {
+		// TODO Sprint 3.
+		return $this->respond( [] );
+	}
 
-    public function findings( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-        // TODO Sprint 3.
-        return $this->respond( [] );
-    }
+	public function findings( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		// TODO Sprint 3.
+		return $this->respond( [] );
+	}
 
-    public function ingestExternal( WP_REST_Request $request ): WP_REST_Response {
-        // TODO Sprint 7 (Accessibility module).
-        return $this->respond( null, 204 );
-    }
+	public function ingestExternal( WP_REST_Request $request ): WP_REST_Response {
+		// TODO Sprint 7 (Accessibility module).
+		return $this->respond( null, 204 );
+	}
 }

@@ -16,37 +16,37 @@ namespace WPSecurity\Contracts;
  */
 interface Context {
 
-    /**
-     * Absolute path to the WordPress root directory (with trailing slash).
-     */
-    public function wpRootPath(): string;
+	/**
+	 * Absolute path to the WordPress root directory (with trailing slash).
+	 */
+	public function wpRootPath(): string;
 
-    /**
-     * Absolute path to the wp-content directory (with trailing slash).
-     */
-    public function contentPath(): string;
+	/**
+	 * Absolute path to the wp-content directory (with trailing slash).
+	 */
+	public function contentPath(): string;
 
-    /**
-     * The site's home URL.
-     */
-    public function homeUrl(): string;
+	/**
+	 * The site's home URL.
+	 */
+	public function homeUrl(): string;
 
-    /**
-     * WordPress core version string, e.g. "6.5.2".
-     */
-    public function wpVersion(): string;
+	/**
+	 * WordPress core version string, e.g. "6.5.2".
+	 */
+	public function wpVersion(): string;
 
-    /**
-     * PHP version string, e.g. "8.1.27".
-     */
-    public function phpVersion(): string;
+	/**
+	 * PHP version string, e.g. "8.1.27".
+	 */
+	public function phpVersion(): string;
 
-    /**
-     * Retrieve an arbitrary environment value by key.
-     * Allows checks to request plugin/theme lists, DB info, etc.
-     * Returns null when the key is not available.
-     *
-     * @return mixed
-     */
-    public function get( string $key ): mixed;
+	/**
+	 * Retrieve an arbitrary environment value by key.
+	 * Allows checks to request plugin/theme lists, DB info, etc.
+	 * Returns null when the key is not available.
+	 *
+	 * @return mixed
+	 */
+	public function get( string $key ): mixed;
 }

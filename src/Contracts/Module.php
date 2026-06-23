@@ -14,25 +14,25 @@ namespace WPSecurity\Contracts;
  */
 interface Module {
 
-    /**
-     * Stable, URL-safe identifier, e.g. "server".
-     */
-    public function id(): string;
+	/**
+	 * Stable, URL-safe identifier, e.g. "server".
+	 */
+	public function id(): string;
 
-    /**
-     * Human-readable label shown in the navigation, e.g. "Server Health".
-     */
-    public function label(): string;
+	/**
+	 * Human-readable label shown in the navigation, e.g. "Server Health".
+	 */
+	public function label(): string;
 
-    /**
-     * Dashicon slug or inline SVG key used in the sidebar, e.g. "dashicons-shield".
-     */
-    public function icon(): string;
+	/**
+	 * Dashicon slug or inline SVG key used in the sidebar, e.g. "dashicons-shield".
+	 */
+	public function icon(): string;
 
-    /**
-     * Return all Check objects that belong to this module.
-     *
-     * @return iterable<Check>
-     */
-    public function checks(): iterable;
+	/**
+	 * Return all Check objects that belong to this module.
+	 *
+	 * @return iterable<Check>
+	 */
+	public function checks(): iterable;
 }
