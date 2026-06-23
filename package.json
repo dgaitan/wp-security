@@ -1,0 +1,31 @@
+{
+    "name": "wp-security",
+    "version": "0.1.0",
+    "description": "React admin SPA for the WP Security plugin.",
+    "private": true,
+    "scripts": {
+        "build": "wp-scripts build",
+        "start": "wp-scripts start",
+        "lint:js": "wp-scripts lint-js",
+        "lint:style": "wp-scripts lint-style",
+        "format": "wp-scripts format",
+        "packages-update": "wp-scripts packages-update"
+    },
+    "main": "build/index.js",
+    "dependencies": {
+        "@tanstack/react-query": "^5.0.0",
+        "@wordpress/api-fetch": "*",
+        "@wordpress/components": "*",
+        "@wordpress/element": "*",
+        "@wordpress/i18n": "*",
+        "react-router-dom": "^6.0.0"
+    },
+    "devDependencies": {
+        "@wordpress/eslint-plugin": "*",
+        "@wordpress/scripts": "*"
+    },
+    "wp-scripts": {
+        "webpack-src-dir": "assets/app",
+        "output-path": "build"
+    }
+}

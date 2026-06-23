@@ -1,0 +1,36 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build output
+/build/
+/dist/
+
+# Package manager lock files (plugin repos don't ship lock files)
+composer.lock
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# PHP
+*.log
+
+# Test artifacts
+/coverage/
+/.phpunit.result.cache
+
+# Environment / secrets
+.env
+.env.*
+
+# Local Claude overrides (personal notes, not team-shared)
+CLAUDE.local.md

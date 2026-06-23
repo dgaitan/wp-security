@@ -1,0 +1,14 @@
+parameters:
+    level: 6
+    paths:
+        - wp-security.php
+        - uninstall.php
+        - src/
+    excludePaths:
+        - vendor/
+    bootstrapFiles:
+        - tests/bootstrap-stubs.php
+    # WordPress function stubs are provided by szepeviktor/phpstan-wordpress
+    # (installed as a Composer extension — auto-registered via phpstan/extension-installer).
+    checkMissingIterableValueType: false
+    reportUnmatchedIgnoredErrors: false
