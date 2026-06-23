@@ -33,6 +33,11 @@ if ( file_exists( WP_SECURITY_DIR . 'vendor/autoload.php' ) ) {
 	require_once WP_SECURITY_DIR . 'vendor/autoload.php';
 }
 
+// Action Scheduler.
+if ( file_exists( WP_SECURITY_DIR . 'vendor/woocommerce/action-scheduler/action-scheduler.php' ) ) {
+	require_once WP_SECURITY_DIR . 'vendor/woocommerce/action-scheduler/action-scheduler.php';
+}
+
 // Activation / deactivation hooks must be registered at the top level.
 register_activation_hook(
 	__FILE__,

@@ -84,6 +84,32 @@ final class Finding {
 	}
 
 	/**
+	 * Rehydrate a Finding from its persisted/array form (inverse of toArray()).
+	 *
+	 * Used when scoring findings that were read back from the database after a
+	 * background scan, so the scoring engine consumes Finding objects rather than
+	 * raw rows.
+	 *
+	 * @param array<string, mixed> $data
+	 */
+	public static function fromArray( array $data ): self {
+		/** @var array<string, mixed> $evidence */
+		$evidence = is_array( $data['evidence'] ?? null ) ? $data['evidence'] : [];
+		$docsUrl  = $data['docs_url'] ?? null;
+
+		return new self(
+			checkId:        (string) ( $data['check_id'] ?? '' ),
+			status:         Status::from( (string) ( $data['status'] ?? Status::INFO->value ) ),
+			severity:       Severity::from( (string) ( $data['severity'] ?? Severity::INFO->value ) ),
+			title:          (string) ( $data['title'] ?? '' ),
+			description:    (string) ( $data['description'] ?? '' ),
+			recommendation: (string) ( $data['recommendation'] ?? '' ),
+			evidence:       $evidence,
+			docsUrl:        null !== $docsUrl ? (string) $docsUrl : null,
+		);
+	}
+
+	/**
 	 * Factory: create a SKIPPED finding when a check cannot run.
 	 */
 	public static function skipped( string $checkId, string $title, string $reason ): self {

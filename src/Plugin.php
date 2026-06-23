@@ -6,7 +6,14 @@ namespace WPSecurity;
 
 use WPSecurity\Container\Container;
 use WPSecurity\Container\CoreServiceProvider;
+use WPSecurity\Container\PersistenceServiceProvider;
+use WPSecurity\Container\RestServiceProvider;
+use WPSecurity\Container\ScanningServiceProvider;
 use WPSecurity\Container\ServiceProvider;
+use WPSecurity\Persistence\Migrator;
+use WPSecurity\Rest\ScansController;
+use WPSecurity\Scanning\ScanManager;
+use WPSecurity\Scanning\Scheduler;
 
 /**
  * Composition root and singleton entry-point.
@@ -69,12 +76,17 @@ final class Plugin {
 	// -------------------------------------------------------------------------
 
 	public static function activate(): void {
-		// TODO Sprint 2: run dbDelta migrations, schedule recurring scan action.
+		global $wpdb;
+
+		( new Migrator( $wpdb ) )->run();
+		( new Scheduler() )->schedule();
+
 		flush_rewrite_rules();
 	}
 
 	public static function deactivate(): void {
-		// TODO Sprint 2: unschedule recurring Action Scheduler actions.
+		( new Scheduler() )->unschedule();
+
 		flush_rewrite_rules();
 	}
 
@@ -86,6 +98,9 @@ final class Plugin {
 		// Feature providers (Admin, Rest, Scanning) are appended here as their sprints land.
 		$providers = [
 			CoreServiceProvider::class,
+			PersistenceServiceProvider::class,
+			ScanningServiceProvider::class,
+			RestServiceProvider::class,
 		];
 
 		foreach ( $providers as $providerClass ) {
@@ -96,6 +111,31 @@ final class Plugin {
 	}
 
 	private function registerHooks(): void {
-		// Resolved services attach their WordPress hooks here as feature areas land.
+		$container = $this->container;
+
+		// REST routes.
+		add_action(
+			'rest_api_init',
+			static function () use ( $container ): void {
+				$container->get( ScansController::class )->register();
+			}
+		);
+
+		// Action Scheduler callbacks.
+		add_action(
+			ScanManager::ACTION_RUN_MODULE,
+			static function ( int $runId, string $moduleId ) use ( $container ): void {
+				$container->get( ScanManager::class )->runModuleJob( $runId, $moduleId );
+			},
+			10,
+			2
+		);
+
+		add_action(
+			Scheduler::ACTION_HOOK,
+			static function () use ( $container ): void {
+				$container->get( ScanManager::class )->scanAll();
+			}
+		);
 	}
 }

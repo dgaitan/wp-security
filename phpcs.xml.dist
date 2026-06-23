@@ -69,6 +69,27 @@
     <rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
+    <!-- Tests set $GLOBALS['wpdb'] to inject an in-memory database double. -->
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <!--
+        Runtime class stubs in tests/stubs/ mimic WordPress core: the wpdb class
+        is intentionally lower-cased to mirror core, several core classes are
+        grouped in one file, and their bodies re-implement core functions whose
+        WP alternatives don't exist outside WordPress.  Scope these relaxations
+        to the stub directory only — production code keeps the full rule set.
+    -->
+    <rule ref="Generic.Files.OneObjectStructurePerFile">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+    <rule ref="PEAR.NamingConventions.ValidClassName">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP.AlternativeFunctions">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
 
     <!-- PHP version targeting. -->
     <config name="testVersion" value="8.1-"/>

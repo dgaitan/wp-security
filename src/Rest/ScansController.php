@@ -7,6 +7,8 @@ namespace WPSecurity\Rest;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
+use WPSecurity\Contracts\Scanner;
+use WPSecurity\Persistence\ScanRunRepository;
 
 /**
  * Scan lifecycle endpoints.
@@ -17,10 +19,13 @@ use WP_Error;
  *
  * POST body: { "module": "all" | "<module-id>" }
  * Returns:   { "run_id": int }
- *
- * TODO Sprint 2: implement all methods.
  */
 class ScansController extends AbstractController {
+
+	public function __construct(
+		private Scanner $scanner,
+		private ScanRunRepository $runs,
+	) {}
 
 	public function register(): void {
 		register_rest_route(
@@ -68,23 +73,34 @@ class ScansController extends AbstractController {
 	}
 
 	public function create( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		// TODO Sprint 2.
-		return $this->respond( [ 'run_id' => 0 ], 202 );
+		$module = (string) $request->get_param( 'module' );
+
+		try {
+			$runId = ( '' === $module || 'all' === $module )
+				? $this->scanner->scanAll()
+				: $this->scanner->scanModule( $module );
+		} catch ( \Throwable $e ) {
+			return new WP_Error(
+				'wp_security_scan_failed',
+				__( 'The scan could not be started.', 'wp-security' ),
+				[ 'status' => 500 ]
+			);
+		}
+
+		return $this->respond( [ 'run_id' => $runId ], 202 );
 	}
 
 	public function status( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		// TODO Sprint 2.
-		return $this->respond(
-			[
-				'status'   => 'unknown',
-				'progress' => 0,
-				'total'    => 0,
-			]
-		);
+		$id = (int) $request->get_param( 'id' );
+
+		if ( null === $this->runs->find( $id ) ) {
+			return $this->notFound( __( 'Scan run not found.', 'wp-security' ) );
+		}
+
+		return $this->respond( $this->scanner->status( $id ) );
 	}
 
 	public function history( WP_REST_Request $request ): WP_REST_Response {
-		// TODO Sprint 2.
-		return $this->respond( [] );
+		return $this->respond( $this->runs->history() );
 	}
 }

@@ -20,3 +20,7 @@ require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 // Minimal WordPress stubs for unit tests — keeps the autoloader from blowing
 // up on functions like get_option(), apply_filters(), etc.
 require_once __DIR__ . '/stubs/wordpress-stubs.php';
+
+// Runtime class stubs (wpdb, WP_REST_*, WP_Error).  Loaded only here, never by
+// the PHPStan bootstrap, so they don't clash with the analyser's WordPress stubs.
+require_once __DIR__ . '/stubs/wp-class-stubs.php';
