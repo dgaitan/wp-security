@@ -24,64 +24,64 @@ use WPSecurity\Domain\Score;
  */
 class ScoringService {
 
-    /**
-     * Default weight for each module.
-     * Security-oriented modules are weighted higher than SEO/performance.
-     *
-     * @var array<string, int>
-     */
-    private const DEFAULT_WEIGHTS = [
-        'server'         => 15,
-        'dns'            => 10,
-        'headers'        => 10,
-        'core'           => 20,
-        'plugins_themes' => 15,
-        'database'       => 10,
-        'performance'    =>  5,
-        'accessibility'  =>  5,
-        'seo'            =>  5,
-        'users'          =>  5,
-    ];
+	/**
+	 * Default weight for each module.
+	 * Security-oriented modules are weighted higher than SEO/performance.
+	 *
+	 * @var array<string, int>
+	 */
+	private const DEFAULT_WEIGHTS = [
+		'server'         => 15,
+		'dns'            => 10,
+		'headers'        => 10,
+		'core'           => 20,
+		'plugins_themes' => 15,
+		'database'       => 10,
+		'performance'    => 5,
+		'accessibility'  => 5,
+		'seo'            => 5,
+		'users'          => 5,
+	];
 
-    /**
-     * Calculate the score for a single module from its findings.
-     *
-     * @param array<Finding> $findings
-     */
-    public function scoreModule( string $moduleId, array $findings ): Score {
-        $penalty = 0;
+	/**
+	 * Calculate the score for a single module from its findings.
+	 *
+	 * @param array<Finding> $findings
+	 */
+	public function scoreModule( string $moduleId, array $findings ): Score {
+		$penalty = 0;
 
-        foreach ( $findings as $finding ) {
-            $penalty += $finding->penalty();
-        }
+		foreach ( $findings as $finding ) {
+			$penalty += $finding->penalty();
+		}
 
-        $value = max( 0, 100 - $penalty );
+		$value = max( 0, 100 - $penalty );
 
-        return new Score( $value, $moduleId );
-    }
+		return new Score( $value, $moduleId );
+	}
 
-    /**
-     * Calculate the overall site score as a weighted average of module scores.
-     *
-     * @param array<string, Score> $moduleScores Keyed by module ID.
-     */
-    public function overallScore( array $moduleScores ): Score {
-        /** @var array<string, int> $weights */
-        $weights = apply_filters( 'wp_security/scoring_weights', self::DEFAULT_WEIGHTS );
+	/**
+	 * Calculate the overall site score as a weighted average of module scores.
+	 *
+	 * @param array<string, Score> $moduleScores Keyed by module ID.
+	 */
+	public function overallScore( array $moduleScores ): Score {
+		/** @var array<string, int> $weights */
+		$weights = apply_filters( 'wp_security/scoring_weights', self::DEFAULT_WEIGHTS );
 
-        $weightedSum  = 0;
-        $totalWeights = 0;
+		$weightedSum  = 0;
+		$totalWeights = 0;
 
-        foreach ( $moduleScores as $moduleId => $score ) {
-            $weight = $weights[ $moduleId ] ?? 5;
-            $weightedSum  += $score->value * $weight;
-            $totalWeights += $weight;
-        }
+		foreach ( $moduleScores as $moduleId => $score ) {
+			$weight        = $weights[ $moduleId ] ?? 5;
+			$weightedSum  += $score->value * $weight;
+			$totalWeights += $weight;
+		}
 
-        $overall = $totalWeights > 0
-            ? (int) round( $weightedSum / $totalWeights )
-            : 0;
+		$overall = $totalWeights > 0
+			? (int) round( $weightedSum / $totalWeights )
+			: 0;
 
-        return new Score( $overall, 'overall' );
-    }
+		return new Score( $overall, 'overall' );
+	}
 }

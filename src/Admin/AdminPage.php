@@ -16,37 +16,37 @@ namespace WPSecurity\Admin;
  */
 class AdminPage {
 
-    public function register(): void {
-        add_action( 'admin_menu', [ $this, 'addMenuPage' ] );
-        add_action( 'admin_enqueue_scripts', [ $this, 'enqueueAssets' ] );
-    }
+	public function register(): void {
+		add_action( 'admin_menu', [ $this, 'addMenuPage' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueAssets' ] );
+	}
 
-    public function addMenuPage(): void {
-        add_menu_page(
-            __( 'WP Security', 'wp-security' ),
-            __( 'WP Security', 'wp-security' ),
-            'manage_options',
-            'wp-security',
-            [ $this, 'renderPage' ],
-            'dashicons-shield',
-            80
-        );
-    }
+	public function addMenuPage(): void {
+		add_menu_page(
+			__( 'WP Security', 'wp-security' ),
+			__( 'WP Security', 'wp-security' ),
+			'manage_options',
+			'wp-security',
+			[ $this, 'renderPage' ],
+			'dashicons-shield',
+			80
+		);
+	}
 
-    public function enqueueAssets( string $hook ): void {
-        if ( 'toplevel_page_wp-security' !== $hook ) {
-            return;
-        }
+	public function enqueueAssets( string $hook ): void {
+		if ( 'toplevel_page_wp-security' !== $hook ) {
+			return;
+		}
 
-        // TODO Sprint 3: enqueue build/index.js + build/index.css and pass
-        // inline bootstrap data (REST URL, nonce, capabilities).
-    }
+		// TODO Sprint 3: enqueue build/index.js + build/index.css and pass
+		// inline bootstrap data (REST URL, nonce, capabilities).
+	}
 
-    public function renderPage(): void {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You do not have permission to access this page.', 'wp-security' ) );
-        }
+	public function renderPage(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'wp-security' ) );
+		}
 
-        echo '<div id="wp-security-root"></div>';
-    }
+		echo '<div id="wp-security-root"></div>';
+	}
 }

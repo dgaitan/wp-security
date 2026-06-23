@@ -32,30 +32,30 @@ use WPSecurity\Domain\Finding;
  */
 class FindingRepository {
 
-    /**
-     * Persist a Finding for a specific run and module.
-     */
-    public function save( int $runId, string $moduleId, Finding $finding ): void {
-        // TODO Sprint 2.
-    }
+	/**
+	 * Persist a Finding for a specific run and module.
+	 */
+	public function save( int $runId, string $moduleId, Finding $finding ): void {
+		// TODO Sprint 2.
+	}
 
-    /**
-     * Retrieve all findings for a given run (optionally filtered by module).
-     *
-     * @return array<array<string, mixed>>
-     */
-    public function forRun( int $runId, ?string $moduleId = null ): array {
-        // TODO Sprint 2.
-        return [];
-    }
+	/**
+	 * Retrieve all findings for a given run (optionally filtered by module).
+	 *
+	 * @return array<array<string, mixed>>
+	 */
+	public function forRun( int $runId, ?string $moduleId = null ): array {
+		// TODO Sprint 2.
+		return [];
+	}
 
-    /**
-     * Retrieve the most severe open findings across all runs (for the dashboard).
-     *
-     * @return array<array<string, mixed>>
-     */
-    public function topFindings( int $limit = 10 ): array {
-        // TODO Sprint 2.
-        return [];
-    }
+	/**
+	 * Retrieve the most severe open findings across all runs (for the dashboard).
+	 *
+	 * @return array<array<string, mixed>>
+	 */
+	public function topFindings( int $limit = 10 ): array {
+		// TODO Sprint 2.
+		return [];
+	}
 }

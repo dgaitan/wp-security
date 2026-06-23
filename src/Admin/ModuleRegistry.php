@@ -23,59 +23,59 @@ use WPSecurity\Contracts\Module;
  */
 class ModuleRegistry {
 
-    /** @var array<string, Module>|null Keyed by module ID; null until first load. */
-    private ?array $modules = null;
+	/** @var array<string, Module>|null Keyed by module ID; null until first load. */
+	private ?array $modules = null;
 
-    /**
-     * Return all registered modules, keyed by their ID.
-     *
-     * @return array<string, Module>
-     */
-    public function all(): array {
-        if ( null === $this->modules ) {
-            $this->modules = $this->load();
-        }
-        return $this->modules;
-    }
+	/**
+	 * Return all registered modules, keyed by their ID.
+	 *
+	 * @return array<string, Module>
+	 */
+	public function all(): array {
+		if ( null === $this->modules ) {
+			$this->modules = $this->load();
+		}
+		return $this->modules;
+	}
 
-    /**
-     * Retrieve a single module by ID, or null if not found.
-     */
-    public function get( string $id ): ?Module {
-        return $this->all()[ $id ] ?? null;
-    }
+	/**
+	 * Retrieve a single module by ID, or null if not found.
+	 */
+	public function get( string $id ): ?Module {
+		return $this->all()[ $id ] ?? null;
+	}
 
-    /**
-     * Check whether a module with the given ID is registered.
-     */
-    public function has( string $id ): bool {
-        return isset( $this->all()[ $id ] );
-    }
+	/**
+	 * Check whether a module with the given ID is registered.
+	 */
+	public function has( string $id ): bool {
+		return isset( $this->all()[ $id ] );
+	}
 
-    /**
-     * Invalidate the cached module list (useful in tests).
-     */
-    public function flush(): void {
-        $this->modules = null;
-    }
+	/**
+	 * Invalidate the cached module list (useful in tests).
+	 */
+	public function flush(): void {
+		$this->modules = null;
+	}
 
-    // -------------------------------------------------------------------------
-    // Internals
-    // -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
+	// Internals
+	// -------------------------------------------------------------------------
 
-    /**
-     * Run the filter and index the resulting modules by ID.
-     *
-     * @return array<string, Module>
-     */
-    private function load(): array {
-        /** @var array<Module> $raw */
-        $raw = apply_filters( 'wp_security/modules', [] );
+	/**
+	 * Run the filter and index the resulting modules by ID.
+	 *
+	 * @return array<string, Module>
+	 */
+	private function load(): array {
+		/** @var array<Module> $raw */
+		$raw = apply_filters( 'wp_security/modules', [] );
 
-        $indexed = [];
-        foreach ( $raw as $module ) {
-            $indexed[ $module->id() ] = $module;
-        }
-        return $indexed;
-    }
+		$indexed = [];
+		foreach ( $raw as $module ) {
+			$indexed[ $module->id() ] = $module;
+		}
+		return $indexed;
+	}
 }

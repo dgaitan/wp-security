@@ -13,21 +13,21 @@ namespace WPSecurity\Scanning;
  */
 class Scheduler {
 
-    public const ACTION_HOOK = 'wp_security/run_scheduled_scan';
+	public const ACTION_HOOK = 'wp_security/run_scheduled_scan';
 
-    /**
-     * Schedule a recurring scan at the configured frequency.
-     * Called from Plugin::activate().
-     */
-    public function schedule(): void {
-        // TODO Sprint 2.
-    }
+	/**
+	 * Schedule a recurring scan at the configured frequency.
+	 * Called from Plugin::activate().
+	 */
+	public function schedule(): void {
+		// TODO Sprint 2.
+	}
 
-    /**
-     * Remove the recurring scan from the Action Scheduler queue.
-     * Called from Plugin::deactivate().
-     */
-    public function unschedule(): void {
-        // TODO Sprint 2.
-    }
+	/**
+	 * Remove the recurring scan from the Action Scheduler queue.
+	 * Called from Plugin::deactivate().
+	 */
+	public function unschedule(): void {
+		// TODO Sprint 2.
+	}
 }

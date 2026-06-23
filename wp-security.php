@@ -19,7 +19,7 @@
 declare( strict_types=1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 // Plugin constants.
@@ -30,26 +30,36 @@ define( 'WP_SECURITY_BASENAME', plugin_basename( __FILE__ ) );
 
 // Composer autoloader.
 if ( file_exists( WP_SECURITY_DIR . 'vendor/autoload.php' ) ) {
-    require_once WP_SECURITY_DIR . 'vendor/autoload.php';
+	require_once WP_SECURITY_DIR . 'vendor/autoload.php';
 }
 
 // Activation / deactivation hooks must be registered at the top level.
-register_activation_hook( __FILE__, static function (): void {
-    if ( class_exists( \WPSecurity\Plugin::class ) ) {
-        \WPSecurity\Plugin::activate();
-    }
-} );
+register_activation_hook(
+	__FILE__,
+	static function (): void {
+		if ( class_exists( \WPSecurity\Plugin::class ) ) {
+			\WPSecurity\Plugin::activate();
+		}
+	}
+);
 
-register_deactivation_hook( __FILE__, static function (): void {
-    if ( class_exists( \WPSecurity\Plugin::class ) ) {
-        \WPSecurity\Plugin::deactivate();
-    }
-} );
+register_deactivation_hook(
+	__FILE__,
+	static function (): void {
+		if ( class_exists( \WPSecurity\Plugin::class ) ) {
+			\WPSecurity\Plugin::deactivate();
+		}
+	}
+);
 
 // Boot the plugin after all plugins are loaded so service providers can depend on other plugins.
-add_action( 'plugins_loaded', static function (): void {
-    if ( ! class_exists( \WPSecurity\Plugin::class ) ) {
-        return;
-    }
-    \WPSecurity\Plugin::instance()->boot();
-}, 10 );
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		if ( ! class_exists( \WPSecurity\Plugin::class ) ) {
+			return;
+		}
+		\WPSecurity\Plugin::instance()->boot();
+	},
+	10
+);

@@ -19,17 +19,17 @@ namespace WPSecurity\Persistence;
  */
 class Migrator {
 
-    public const SCHEMA_VERSION = 1;
+	public const SCHEMA_VERSION = 1;
 
-    public function run(): void {
-        $current = (int) get_option( 'wp_security_schema_version', 0 );
+	public function run(): void {
+		$current = (int) get_option( 'wp_security_schema_version', 0 );
 
-        if ( $current >= self::SCHEMA_VERSION ) {
-            return;
-        }
+		if ( $current >= self::SCHEMA_VERSION ) {
+			return;
+		}
 
-        // TODO Sprint 2: call dbDelta() with the CREATE TABLE statements.
+		// TODO Sprint 2: call dbDelta() with the CREATE TABLE statements.
 
-        update_option( 'wp_security_schema_version', self::SCHEMA_VERSION, false );
-    }
+		update_option( 'wp_security_schema_version', self::SCHEMA_VERSION, false );
+	}
 }

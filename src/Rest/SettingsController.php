@@ -22,34 +22,34 @@ use WP_REST_Response;
  */
 class SettingsController extends AbstractController {
 
-    private const OPTION_KEY = 'wp_security_settings';
+	private const OPTION_KEY = 'wp_security_settings';
 
-    public function register(): void {
-        register_rest_route(
-            self::NAMESPACE,
-            '/settings',
-            [
-                [
-                    'methods'             => 'GET',
-                    'callback'            => [ $this, 'get' ],
-                    'permission_callback' => [ $this, 'permissionCheck' ],
-                ],
-                [
-                    'methods'             => 'POST',
-                    'callback'            => [ $this, 'update' ],
-                    'permission_callback' => [ $this, 'permissionCheck' ],
-                ],
-            ]
-        );
-    }
+	public function register(): void {
+		register_rest_route(
+			self::NAMESPACE,
+			'/settings',
+			[
+				[
+					'methods'             => 'GET',
+					'callback'            => [ $this, 'get' ],
+					'permission_callback' => [ $this, 'permissionCheck' ],
+				],
+				[
+					'methods'             => 'POST',
+					'callback'            => [ $this, 'update' ],
+					'permission_callback' => [ $this, 'permissionCheck' ],
+				],
+			]
+		);
+	}
 
-    public function get( WP_REST_Request $request ): WP_REST_Response {
-        // TODO Sprint 8: return masked settings.
-        return $this->respond( get_option( self::OPTION_KEY, [] ) );
-    }
+	public function get( WP_REST_Request $request ): WP_REST_Response {
+		// TODO Sprint 8: return masked settings.
+		return $this->respond( get_option( self::OPTION_KEY, [] ) );
+	}
 
-    public function update( WP_REST_Request $request ): WP_REST_Response {
-        // TODO Sprint 8: sanitize, validate, persist.
-        return $this->respond( null, 204 );
-    }
+	public function update( WP_REST_Request $request ): WP_REST_Response {
+		// TODO Sprint 8: sanitize, validate, persist.
+		return $this->respond( null, 204 );
+	}
 }

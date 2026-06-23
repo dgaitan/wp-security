@@ -24,32 +24,32 @@ namespace WPSecurity\Persistence;
  */
 class ScanRunRepository {
 
-    public function create( ?string $moduleId ): int {
-        // TODO Sprint 2.
-        throw new \RuntimeException( 'ScanRunRepository::create() not yet implemented.' );
-    }
+	public function create( ?string $moduleId ): int {
+		// TODO Sprint 2.
+		throw new \RuntimeException( 'ScanRunRepository::create() not yet implemented.' );
+	}
 
-    public function updateStatus( int $id, string $status ): void {
-        // TODO Sprint 2.
-    }
+	public function updateStatus( int $id, string $status ): void {
+		// TODO Sprint 2.
+	}
 
-    public function updateScore( int $id, int $score ): void {
-        // TODO Sprint 2.
-    }
+	public function updateScore( int $id, int $score ): void {
+		// TODO Sprint 2.
+	}
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function find( int $id ): ?array {
-        // TODO Sprint 2.
-        return null;
-    }
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	public function find( int $id ): ?array {
+		// TODO Sprint 2.
+		return null;
+	}
 
-    /**
-     * @return array<array<string, mixed>>
-     */
-    public function history( int $limit = 30 ): array {
-        // TODO Sprint 2.
-        return [];
-    }
+	/**
+	 * @return array<array<string, mixed>>
+	 */
+	public function history( int $limit = 30 ): array {
+		// TODO Sprint 2.
+		return [];
+	}
 }

@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php": "^8.1"
+        "php": "^8.1",
+        "psr/container": "^2.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.9",
@@ -37,7 +38,7 @@
     "scripts": {
         "lint": "phpcs --standard=phpcs.xml.dist",
         "lint-fix": "phpcbf --standard=phpcs.xml.dist",
-        "analyse": "phpstan analyse --configuration=phpstan.neon.dist --no-progress",
+        "analyse": "phpstan analyse --configuration=phpstan.neon.dist --no-progress --memory-limit=1G",
         "test": "phpunit --configuration=phpunit.xml.dist",
         "check": [
             "@lint",

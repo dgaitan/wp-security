@@ -13,22 +13,22 @@ namespace WPSecurity\Contracts;
  */
 interface Scanner {
 
-    /**
-     * Enqueue a full scan across all registered modules.
-     * Returns the newly created run ID.
-     */
-    public function scanAll(): int;
+	/**
+	 * Enqueue a full scan across all registered modules.
+	 * Returns the newly created run ID.
+	 */
+	public function scanAll(): int;
 
-    /**
-     * Enqueue a scan for a single module.
-     * Returns the newly created run ID.
-     */
-    public function scanModule( string $moduleId ): int;
+	/**
+	 * Enqueue a scan for a single module.
+	 * Returns the newly created run ID.
+	 */
+	public function scanModule( string $moduleId ): int;
 
-    /**
-     * Retrieve the status of a running or completed scan run.
-     *
-     * @return array{ status: string, progress: int, total: int }
-     */
-    public function status( int $runId ): array;
+	/**
+	 * Retrieve the status of a running or completed scan run.
+	 *
+	 * @return array{ status: string, progress: int, total: int }
+	 */
+	public function status( int $runId ): array;
 }
