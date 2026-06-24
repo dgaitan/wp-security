@@ -16,9 +16,12 @@ use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
 use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
+use WPSecurity\Modules\Database\DatabaseModule;
 use WPSecurity\Modules\Dns\DnsModule;
 use WPSecurity\Modules\Headers\HeadersModule;
+use WPSecurity\Modules\PluginsThemes\PluginsThemesModule;
 use WPSecurity\Modules\Server\ServerModule;
+use WPSecurity\Modules\Users\UsersModule;
 use WPSecurity\Scanning\ScanManager;
 use WPSecurity\Scanning\Scheduler;
 
@@ -129,6 +132,9 @@ final class Plugin {
 					new HeadersModule(),
 					new DnsModule(),
 					new CoreIntegrityModule(),
+					new PluginsThemesModule(),
+					new DatabaseModule(),
+					new UsersModule(),
 				]
 			)
 		);
