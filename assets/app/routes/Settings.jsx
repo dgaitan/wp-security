@@ -100,35 +100,24 @@ export function Settings() {
 									<legend className="screen-reader-text">
 										{ __( 'Vulnerability Advisor', 'wp-security' ) }
 									</legend>
-
-									<label className="wpsec-settings-form__radio-label">
-										<input
-											type="radio"
-											name="vuln_advisor_provider"
-											value="wpvulnerability"
-											checked={ provider === 'wpvulnerability' }
-											onChange={ () => setProvider( 'wpvulnerability' ) }
-										/>
-										{ ' ' }
-										{ __(
-											'WPVulnerability (free, no API key required)',
-											'wp-security'
-										) }
-									</label>
-
-									<br />
-
-									<label className="wpsec-settings-form__radio-label">
-										<input
-											type="radio"
-											name="vuln_advisor_provider"
-											value="wpscan"
-											checked={ provider === 'wpscan' }
-											onChange={ () => setProvider( 'wpscan' ) }
-										/>
-										{ ' ' }
-										{ __( 'WPScan (API key required)', 'wp-security' ) }
-									</label>
+									{ Object.entries(
+										settings?.available_providers ?? {}
+									).map( ( [ slug, name ], i ) => (
+										<span key={ slug }>
+											{ i > 0 && <br /> }
+											<label className="wpsec-settings-form__radio-label">
+												<input
+													type="radio"
+													name="vuln_advisor_provider"
+													value={ slug }
+													checked={ provider === slug }
+													onChange={ () => setProvider( slug ) }
+												/>
+												{ ' ' }
+												{ name }
+											</label>
+										</span>
+									) ) }
 								</fieldset>
 
 								{ provider === 'wpscan' && (

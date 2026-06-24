@@ -6,6 +6,7 @@ namespace WPSecurity\Rest;
 
 use WP_REST_Request;
 use WP_REST_Response;
+use WPSecurity\VulnerabilityAdvisor\VulnerabilityAdvisor;
 
 /**
  * Settings read/write endpoint.
@@ -21,8 +22,6 @@ use WP_REST_Response;
 class SettingsController extends AbstractController {
 
 	private const OPTION_KEY = 'wp_security_settings';
-
-	private const ALLOWED_PROVIDERS = [ 'wpvulnerability', 'wpscan' ];
 
 	public function register(): void {
 		register_rest_route(
@@ -41,7 +40,6 @@ class SettingsController extends AbstractController {
 					'args'                => [
 						'vuln_advisor_provider' => [
 							'type'              => 'string',
-							'enum'              => self::ALLOWED_PROVIDERS,
 							'sanitize_callback' => 'sanitize_key',
 						],
 						'wpscan_api_key'        => [
@@ -55,18 +53,20 @@ class SettingsController extends AbstractController {
 	}
 
 	public function get( WP_REST_Request $request ): WP_REST_Response {
-		$settings                   = (array) get_option( self::OPTION_KEY, [] );
-		$settings['wpscan_api_key'] = $this->maskApiKey( (string) ( $settings['wpscan_api_key'] ?? '' ) );
+		$settings                        = (array) get_option( self::OPTION_KEY, [] );
+		$settings['wpscan_api_key']      = $this->maskApiKey( (string) ( $settings['wpscan_api_key'] ?? '' ) );
+		$settings['available_providers'] = VulnerabilityAdvisor::getAvailableAdvisors();
 		return $this->respond( $settings );
 	}
 
 	public function update( WP_REST_Request $request ): WP_REST_Response {
-		$current = (array) get_option( self::OPTION_KEY, [] );
+		$current           = (array) get_option( self::OPTION_KEY, [] );
+		$allowed_providers = array_keys( VulnerabilityAdvisor::getAvailableAdvisors() );
 
 		$provider = $request->get_param( 'vuln_advisor_provider' );
 		if ( null !== $provider ) {
 			$clean = sanitize_key( (string) $provider );
-			if ( in_array( $clean, self::ALLOWED_PROVIDERS, true ) ) {
+			if ( in_array( $clean, $allowed_providers, true ) ) {
 				$current['vuln_advisor_provider'] = $clean;
 			}
 		}
