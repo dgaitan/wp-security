@@ -6,6 +6,7 @@ namespace WPSecurity\Container;
 
 use WPSecurity\Admin\AdminPage;
 use WPSecurity\Admin\ModuleRegistry;
+use WPSecurity\Alerting\AlertService;
 use WPSecurity\Contracts\Context;
 use WPSecurity\Scanning\ScanContext;
 use WPSecurity\Scoring\ScoringService;
@@ -39,6 +40,11 @@ final class CoreServiceProvider extends ServiceProvider {
 		$this->container->singleton(
 			Context::class,
 			static fn(): Context => new ScanContext()
+		);
+
+		$this->container->singleton(
+			AlertService::class,
+			static fn(): AlertService => new AlertService()
 		);
 	}
 }

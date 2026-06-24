@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace WPSecurity;
 
 use WPSecurity\Admin\AdminPage;
+use WPSecurity\Alerting\AlertService;
 use WPSecurity\Container\Container;
 use WPSecurity\Container\CoreServiceProvider;
 use WPSecurity\Container\PersistenceServiceProvider;
@@ -176,5 +177,21 @@ final class Plugin {
 				$container->get( ScanManager::class )->scanAll();
 			}
 		);
+
+		// Alert on CRITICAL findings when a scan completes.
+		add_action(
+			'wp_security/scan_complete',
+			static function ( int $runId, array $criticalFindings ) use ( $container ): void {
+				$container->get( AlertService::class )->maybeAlert( $runId, $criticalFindings );
+			},
+			10,
+			2
+		);
+
+		// Load the sample extension so developers can see how third-party modules work.
+		$sampleBootstrap = WP_SECURITY_DIR . 'examples/WpSecuritySampleModule/bootstrap.php';
+		if ( file_exists( $sampleBootstrap ) ) {
+			require_once $sampleBootstrap;
+		}
 	}
 }

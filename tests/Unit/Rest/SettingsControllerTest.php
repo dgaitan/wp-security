@@ -151,4 +151,102 @@ final class SettingsControllerTest extends TestCase {
 		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
 		$this->assertSame( 'wpvulnerability', $stored['vuln_advisor_provider'] );
 	}
+
+	// ------------------------------------------------------------------
+	// Sprint 8 — scan_frequency, alert_email, slack_webhook_url settings.
+	// ------------------------------------------------------------------
+
+	public function test_get_returns_scan_frequency_when_stored(): void {
+		$GLOBALS['wp_security_test_options']['wp_security_settings'] = [
+			'scan_frequency' => 'weekly',
+		];
+
+		$request  = new \WP_REST_Request();
+		$response = $this->controller->get( $request );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'weekly', $data['scan_frequency'] );
+	}
+
+	public function test_post_saves_valid_scan_frequency(): void {
+		$request = new \WP_REST_Request();
+		$request->set_param( 'scan_frequency', 'weekly' );
+
+		$response = $this->controller->update( $request );
+
+		$this->assertSame( 204, $response->get_status() );
+		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+		$this->assertSame( 'weekly', $stored['scan_frequency'] );
+	}
+
+	public function test_post_rejects_invalid_scan_frequency(): void {
+		$request = new \WP_REST_Request();
+		$request->set_param( 'scan_frequency', 'monthly' );
+
+		$this->controller->update( $request );
+
+		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+		$this->assertArrayNotHasKey( 'scan_frequency', $stored );
+	}
+
+	public function test_post_saves_all_valid_frequencies(): void {
+		foreach ( [ 'hourly', 'daily', 'weekly' ] as $freq ) {
+			$GLOBALS['wp_security_test_options']['wp_security_settings'] = [];
+			$request = new \WP_REST_Request();
+			$request->set_param( 'scan_frequency', $freq );
+			$this->controller->update( $request );
+			$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+			$this->assertSame( $freq, $stored['scan_frequency'], "Expected frequency '$freq' to be saved." );
+		}
+	}
+
+	public function test_post_saves_alert_email(): void {
+		$request = new \WP_REST_Request();
+		$request->set_param( 'alert_email', 'admin@example.com' );
+
+		$this->controller->update( $request );
+
+		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+		$this->assertSame( 'admin@example.com', $stored['alert_email'] );
+	}
+
+	public function test_post_does_not_save_invalid_email(): void {
+		$request = new \WP_REST_Request();
+		$request->set_param( 'alert_email', 'not-an-email' );
+
+		$this->controller->update( $request );
+
+		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+		$this->assertArrayNotHasKey( 'alert_email', $stored );
+	}
+
+	public function test_post_saves_slack_webhook_url(): void {
+		$request = new \WP_REST_Request();
+		$request->set_param( 'slack_webhook_url', 'https://hooks.slack.com/T000/xxx' );
+
+		$this->controller->update( $request );
+
+		$stored = $GLOBALS['wp_security_test_options']['wp_security_settings'] ?? [];
+		$this->assertSame( 'https://hooks.slack.com/T000/xxx', $stored['slack_webhook_url'] );
+	}
+
+	public function test_settings_round_trip(): void {
+		// Save.
+		$request = new \WP_REST_Request();
+		$request->set_param( 'scan_frequency', 'weekly' );
+		$request->set_param( 'vuln_advisor_provider', 'wpscan' );
+		$request->set_param( 'alert_email', 'admin@example.com' );
+		$this->controller->update( $request );
+
+		// Reload.
+		$get      = new \WP_REST_Request();
+		$response = $this->controller->get( $get );
+		$data     = $response->get_data();
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'weekly', $data['scan_frequency'] );
+		$this->assertSame( 'wpscan', $data['vuln_advisor_provider'] );
+		$this->assertSame( 'admin@example.com', $data['alert_email'] );
+	}
 }

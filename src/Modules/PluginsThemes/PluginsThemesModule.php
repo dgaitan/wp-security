@@ -39,6 +39,6 @@ class PluginsThemesModule implements Module {
 		 *
 		 * @param array<\WPSecurity\Contracts\Check> $checks
 		 */
-		return apply_filters( 'wp_security/checks/plugins_themes', $checks );
+		yield from apply_filters( 'wp_security/checks/plugins_themes', $checks );
 	}
 }

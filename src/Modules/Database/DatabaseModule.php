@@ -42,6 +42,6 @@ class DatabaseModule implements Module {
 		 *
 		 * @param array<\WPSecurity\Contracts\Check> $checks
 		 */
-		return apply_filters( 'wp_security/checks/database', $checks );
+		yield from apply_filters( 'wp_security/checks/database', $checks );
 	}
 }

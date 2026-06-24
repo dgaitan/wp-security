@@ -23,6 +23,9 @@ class SettingsController extends AbstractController {
 
 	private const OPTION_KEY = 'wp_security_settings';
 
+	/** @var string[] */
+	private const VALID_FREQUENCIES = [ 'hourly', 'daily', 'weekly' ];
+
 	public function register(): void {
 		register_rest_route(
 			self::NAMESPACE,
@@ -45,6 +48,18 @@ class SettingsController extends AbstractController {
 						'wpscan_api_key'        => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_text_field',
+						],
+						'scan_frequency'        => [
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_key',
+						],
+						'alert_email'           => [
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_email',
+						],
+						'slack_webhook_url'     => [
+							'type'              => 'string',
+							'sanitize_callback' => 'esc_url_raw',
 						],
 					],
 				],
@@ -74,6 +89,34 @@ class SettingsController extends AbstractController {
 		$key = $request->get_param( 'wpscan_api_key' );
 		if ( null !== $key && ! str_contains( (string) $key, '•' ) ) {
 			$current['wpscan_api_key'] = sanitize_text_field( (string) $key );
+		}
+
+		$frequency = $request->get_param( 'scan_frequency' );
+		if ( null !== $frequency ) {
+			$clean = sanitize_key( (string) $frequency );
+			if ( in_array( $clean, self::VALID_FREQUENCIES, true ) ) {
+				$current['scan_frequency'] = $clean;
+			}
+		}
+
+		$email = $request->get_param( 'alert_email' );
+		if ( null !== $email ) {
+			$clean = sanitize_email( (string) $email );
+			if ( '' !== $clean ) {
+				$current['alert_email'] = $clean;
+			} else {
+				unset( $current['alert_email'] );
+			}
+		}
+
+		$slackUrl = $request->get_param( 'slack_webhook_url' );
+		if ( null !== $slackUrl ) {
+			$clean = esc_url_raw( (string) $slackUrl );
+			if ( '' !== $clean ) {
+				$current['slack_webhook_url'] = $clean;
+			} else {
+				unset( $current['slack_webhook_url'] );
+			}
 		}
 
 		update_option( self::OPTION_KEY, $current, false );

@@ -4,6 +4,7 @@ import { __ } from '@wordpress/i18n';
 import { fetchDashboard } from '../api/dashboard';
 import { startScan, getScanStatus } from '../api/scans';
 import { ScoreCard } from '../components/ScoreCard';
+import { Sparkline } from '../components/Sparkline';
 import { MODULES } from '../api/modules';
 
 const POLL_INTERVAL_MS = 3000;
@@ -89,6 +90,8 @@ export function Dashboard() {
 
 	const moduleScores = data?.module_scores ?? {};
 	const overallScore = data?.overall_score ?? null;
+	const trend        = data?.trend ?? [];
+	const trendScores  = trend.map( ( t ) => t.score );
 
 	return (
 		<div className="wpsec-dashboard wrap">
@@ -146,6 +149,15 @@ export function Dashboard() {
 						{ __( 'Overall Score:', 'wp-security' ) }
 					</span>
 					<span className="wpsec-dashboard__overall-score">{ overallScore }</span>
+				</div>
+			) }
+
+			{ trendScores.length >= 2 && (
+				<div className="wpsec-dashboard__trend">
+					<span className="wpsec-dashboard__trend-label">
+						{ __( 'Score trend (last 30 scans):', 'wp-security' ) }
+					</span>
+					<Sparkline data={ trendScores } width={ 240 } height={ 48 } />
 				</div>
 			) }
 
