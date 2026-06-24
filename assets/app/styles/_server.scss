@@ -86,6 +86,63 @@
 	&[data-status='skipped'] { background: $wpsec-color-bg; color: $wpsec-color-muted; }
 }
 
+// ---------------------------------------------------------------------------
+// Evidence block — collapsible key/value table shown below a finding.
+// ---------------------------------------------------------------------------
+
+.wpsec-finding__evidence {
+	margin-top: $wpsec-spacing-sm;
+}
+
+.wpsec-finding__evidence-toggle {
+	cursor: pointer;
+	font-size: $wpsec-font-sm;
+	color: $wpsec-color-muted;
+	user-select: none;
+	list-style: none; // remove default triangle in Firefox
+
+	&::marker,
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&::before {
+		content: '▶ ';
+		font-size: 9px;
+		vertical-align: 1px;
+	}
+
+	details[open] > & {
+		&::before {
+			content: '▼ ';
+		}
+	}
+}
+
+.wpsec-finding__evidence-table {
+	width: 100%;
+	margin-top: $wpsec-spacing-xs;
+	border-collapse: collapse;
+	font-size: $wpsec-font-sm;
+}
+
+.wpsec-finding__evidence-key {
+	text-align: left;
+	font-weight: 600;
+	padding: 3px $wpsec-spacing-sm 3px 0;
+	color: $wpsec-color-text;
+	white-space: nowrap;
+	vertical-align: top;
+	width: 1%;
+}
+
+.wpsec-finding__evidence-value {
+	padding: 3px 0;
+	color: $wpsec-color-muted;
+	font-family: Consolas, 'Courier New', monospace;
+	word-break: break-all;
+}
+
 // Empty / error states.
 .wpsec-server__empty {
 	color: $wpsec-color-muted;
