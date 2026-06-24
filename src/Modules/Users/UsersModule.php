@@ -39,6 +39,6 @@ class UsersModule implements Module {
 		 *
 		 * @param array<\WPSecurity\Contracts\Check> $checks
 		 */
-		return apply_filters( 'wp_security/checks/users', $checks );
+		yield from apply_filters( 'wp_security/checks/users', $checks );
 	}
 }
