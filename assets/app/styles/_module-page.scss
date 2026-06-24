@@ -4,3 +4,60 @@
 .wpsec-section {
 	padding: $wpsec-spacing-lg;
 }
+
+.wpsec-findings__empty {
+	color: $wpsec-color-muted;
+	font-style: italic;
+	margin-top: $wpsec-spacing-md;
+}
+
+.wpsec-findings__error {
+	color: #d63638;
+	margin-top: $wpsec-spacing-md;
+}
+
+// ---------------------------------------------------------------------------
+// Per-module scan bar — sits between the page heading and findings list.
+// ---------------------------------------------------------------------------
+
+.wpsec-scan-bar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: $wpsec-spacing-md;
+	margin: $wpsec-spacing-md 0;
+}
+
+.wpsec-scan-bar__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: $wpsec-spacing-sm;
+
+	&[aria-busy='true'] {
+		cursor: wait;
+		opacity: 0.75;
+		pointer-events: none;
+	}
+}
+
+// Inline spinner shown while a scan is in progress.
+.wpsec-scan-bar__spinner {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border: 2px solid rgba( 255, 255, 255, 0.4 );
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: wpsec-spin 0.7s linear infinite;
+	flex-shrink: 0;
+}
+
+@keyframes wpsec-spin {
+	to { transform: rotate( 360deg ); }
+}
+
+.wpsec-scan-bar__error {
+	color: #d63638;
+	margin: 0;
+	font-size: $wpsec-font-sm;
+}
