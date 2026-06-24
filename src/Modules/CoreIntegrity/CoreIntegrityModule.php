@@ -7,7 +7,9 @@ namespace WPSecurity\Modules\CoreIntegrity;
 use WPSecurity\Contracts\Module;
 use WPSecurity\Modules\CoreIntegrity\Checks\CoreFilesCheck;
 use WPSecurity\Modules\CoreIntegrity\Checks\RestUserEnumerationCheck;
+use WPSecurity\Modules\CoreIntegrity\Checks\SuspiciousFilesCheck;
 use WPSecurity\Modules\CoreIntegrity\Checks\WpConfigCheck;
+use WPSecurity\Modules\CoreIntegrity\Checks\WpContentStructureCheck;
 use WPSecurity\Modules\CoreIntegrity\Checks\XmlRpcCheck;
 
 /**
@@ -33,6 +35,8 @@ class CoreIntegrityModule implements Module {
 	public function checks(): iterable {
 		$checks = [
 			new CoreFilesCheck(),
+			new WpContentStructureCheck(),
+			new SuspiciousFilesCheck(),
 			new WpConfigCheck(),
 			new XmlRpcCheck(),
 			new RestUserEnumerationCheck(),

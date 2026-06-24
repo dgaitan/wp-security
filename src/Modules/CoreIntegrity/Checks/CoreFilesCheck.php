@@ -43,7 +43,18 @@ class CoreFilesCheck implements Check {
 		$modified = [];
 
 		foreach ( $checksums as $file => $expectedHash ) {
-			$path = $wpRoot . $file;
+			// Restrict to wp-admin/, wp-includes/, and root-level files only.
+			// wp-content/ is user-managed territory; a dedicated check handles it.
+			$fileStr   = (string) $file;
+			$isRoot    = ! str_contains( $fileStr, '/' );
+			$isCoreDir = str_starts_with( $fileStr, 'wp-admin/' )
+						|| str_starts_with( $fileStr, 'wp-includes/' );
+
+			if ( ! $isRoot && ! $isCoreDir ) {
+				continue;
+			}
+
+			$path = $wpRoot . $fileStr;
 
 			if ( ! file_exists( $path ) ) {
 				// Missing core files are a separate concern; skip here.
@@ -58,7 +69,7 @@ class CoreFilesCheck implements Check {
 			}
 
 			if ( $actualHash !== (string) $expectedHash ) {
-				$modified[] = $file;
+				$modified[] = $fileStr;
 			}
 		}
 
