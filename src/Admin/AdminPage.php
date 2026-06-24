@@ -58,6 +58,7 @@ class AdminPage {
 				[
 					'restRoot' => rest_url( 'wp-security/v1' ),
 					'nonce'    => wp_create_nonce( 'wp_rest' ),
+					'homeUrl'  => get_home_url(),
 				]
 			) . ';',
 			'before'
