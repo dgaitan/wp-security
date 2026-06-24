@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace WPSecurity\Scanning;
 
 use WPSecurity\Contracts\Context;
+use WPSecurity\VulnerabilityAdvisor\VulnerabilityAdvisor;
 
 /**
  * Concrete implementation of the Context contract for live WordPress scans.
@@ -55,8 +56,9 @@ class ScanContext implements Context {
 	 *   'xmlrpc_enabled'          → bool — whether XML-RPC is enabled (via filter)
 	 *   'rest_users_public'       → bool|null — whether /wp/v2/users is publicly accessible
 	 *   'plugin_update_slugs'     → array<int,string>|null — plugin files that have pending updates
-	 *   'wp_vuln_api_key'         → string|null — WPVulnerability API key from settings
-	 *   'vuln_advisories'         → array|null — vulnerability results from WPVulnerability API (null if no key)
+	 *   'vulnerability_advisor'   → VulnerabilityAdvisor — configured provider instance
+	 *   'active_theme_slug'       → string|null — stylesheet name of the active theme
+	 *   'active_theme_version'    → string|null — version of the active theme
 	 *   'autoloaded_options_size' → int|null — total byte size of autoloaded options (uses $wpdb->prepare())
 	 *   'suspicious_option_count' → int|null — options containing eval()/base64_decode() (uses $wpdb->prepare())
 	 *   'suspicious_post_count'   → int|null — published posts containing eval()/base64_decode() (uses $wpdb->prepare())
@@ -86,8 +88,9 @@ class ScanContext implements Context {
 			'xmlrpc_enabled'          => (bool) apply_filters( 'xmlrpc_enabled', true ),
 			'rest_users_public'       => $this->resolveRestUsersPublic(),
 			'plugin_update_slugs'     => $this->resolvePluginUpdateSlugs(),
-			'wp_vuln_api_key'         => $this->resolveVulnApiKey(),
-			'vuln_advisories'         => $this->resolveVulnAdvisories(),
+			'vulnerability_advisor'   => new VulnerabilityAdvisor( (array) get_option( 'wp_security_settings', [] ) ),
+			'active_theme_slug'       => function_exists( 'wp_get_theme' ) ? wp_get_theme()->get_stylesheet() : null,
+			'active_theme_version'    => function_exists( 'wp_get_theme' ) ? wp_get_theme()->get( 'Version' ) : null,
 			'autoloaded_options_size' => $this->resolveAutoloadedOptionsSize(),
 			'suspicious_option_count' => $this->resolveSuspiciousCount( 'options' ),
 			'suspicious_post_count'   => $this->resolveSuspiciousCount( 'posts' ),
@@ -205,80 +208,6 @@ class ScanContext implements Context {
 		/** @var array<string, mixed> $response */
 		$response = (array) $update->response;
 		return array_keys( $response );
-	}
-
-	private function resolveVulnApiKey(): ?string {
-		$settings = get_option( 'wp_security_settings', [] );
-		if ( ! is_array( $settings ) ) {
-			return null;
-		}
-		$key = $settings['vuln_api_key'] ?? null;
-		return ( is_string( $key ) && '' !== $key ) ? $key : null;
-	}
-
-	/** @return array<int, array<string, mixed>>|null */
-	private function resolveVulnAdvisories(): ?array {
-		$apiKey = $this->resolveVulnApiKey();
-		if ( null === $apiKey ) {
-			return null;
-		}
-
-		$advisories    = [];
-		$activePlugins = (array) get_option( 'active_plugins', [] );
-		$allPlugins    = function_exists( 'get_plugins' ) ? get_plugins() : [];
-
-		foreach ( $activePlugins as $pluginFile ) {
-			$parts   = explode( '/', (string) $pluginFile );
-			$slug    = $parts[0];
-			$version = is_array( $allPlugins ) && isset( $allPlugins[ (string) $pluginFile ]['Version'] )
-				? (string) $allPlugins[ (string) $pluginFile ]['Version']
-				: '';
-			if ( '' === $slug || '' === $version ) {
-				continue;
-			}
-			$result = $this->fetchVulnAdvisories( "software/plugins/{$slug}", $version, $apiKey );
-			if ( is_array( $result ) ) {
-				$advisories = array_merge( $advisories, $result );
-			}
-		}
-
-		$coreResult = $this->fetchVulnAdvisories( 'software/core/wordpress', $this->wpVersion(), $apiKey );
-		if ( is_array( $coreResult ) ) {
-			$advisories = array_merge( $advisories, $coreResult );
-		}
-
-		return $advisories;
-	}
-
-	/**
-	 * @return array<int, array<string, mixed>>|null  null on network failure
-	 */
-	private function fetchVulnAdvisories( string $endpoint, string $version, string $apiKey ): ?array {
-		$url      = 'https://api.wpvulnerability.com/' . $endpoint . '?version=' . rawurlencode( $version );
-		$response = wp_remote_get(
-			$url,
-			[
-				'timeout' => 10,
-				'headers' => [ 'Authorization' => 'Bearer ' . $apiKey ],
-			]
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return null;
-		}
-
-		$code = (int) wp_remote_retrieve_response_code( $response );
-		if ( 200 !== $code ) {
-			return [];
-		}
-
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( ! is_array( $body ) ) {
-			return [];
-		}
-
-		$raw = $body['data']['vulnerabilities'] ?? $body['vulnerabilities'] ?? [];
-		return is_array( $raw ) ? array_values( $raw ) : [];
 	}
 
 	private function resolveAutoloadedOptionsSize(): ?int {

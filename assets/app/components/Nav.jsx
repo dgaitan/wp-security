@@ -33,6 +33,15 @@ export function Nav() {
 						</NavLink>
 					</li>
 				) ) }
+				<li className="wpsec-nav__item wpsec-nav__item--settings">
+					<NavLink
+						to="/settings"
+						className={ navLinkClass }
+						aria-label={ __( 'Settings', 'wp-security' ) }
+					>
+						{ __( 'Settings', 'wp-security' ) }
+					</NavLink>
+				</li>
 			</ul>
 		</nav>
 	);

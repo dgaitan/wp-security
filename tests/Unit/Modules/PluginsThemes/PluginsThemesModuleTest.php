@@ -32,7 +32,7 @@ class PluginsThemesModuleTest extends TestCase {
 
 		$this->assertContains( 'plugins_themes.plugin_updates', $ids );
 		$this->assertContains( 'plugins_themes.inactive_plugins', $ids );
-		$this->assertContains( 'plugins_themes.vulnerability_advisory', $ids );
+		$this->assertNotContains( 'plugins_themes.vulnerability_advisory', $ids );
 	}
 
 	public function test_check_ids_are_unique(): void {

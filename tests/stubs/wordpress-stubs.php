@@ -387,3 +387,132 @@ if ( ! defined( 'WP_SECURITY_URL' ) ) {
 if ( ! defined( 'WP_SECURITY_DIR' ) ) {
 	define( 'WP_SECURITY_DIR', dirname( __DIR__, 2 ) . '/' );
 }
+
+// -----------------------------------------------------------------------------
+// HTTP stubs — wp_remote_get, wp_remote_retrieve_body, etc.
+//
+// Tests configure responses by pushing entries into:
+// $GLOBALS['wp_security_test_http_responses'] = [
+// 'https://example.com/...' => [ 'body' => '...', 'code' => 200 ],
+// ];
+// Any unmatched URL returns a WP_Error.
+// -----------------------------------------------------------------------------
+
+if ( ! function_exists( 'is_wp_error' ) ) {
+	/**
+	 * @param mixed $thing
+	 */
+	function is_wp_error( $thing ): bool {
+		return $thing instanceof WP_Error;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_get' ) ) {
+	/**
+	 * Recordable HTTP stub — returns a pre-configured response or WP_Error.
+	 *
+	 * @param array<string, mixed> $args
+	 * @return array<string, mixed>|WP_Error
+	 */
+	function wp_remote_get( string $url, array $args = [] ) {
+		$responses = $GLOBALS['wp_security_test_http_responses'] ?? [];
+
+		// Strip query string for lookup when an exact match is not found.
+		foreach ( $responses as $pattern => $response ) {
+			if ( str_starts_with( $url, $pattern ) || $url === $pattern ) {
+				return [
+					'response' => [ 'code' => $response['code'] ?? 200 ],
+					'body'     => $response['body'] ?? '',
+				];
+			}
+		}
+
+		return new WP_Error( 'http_request_failed', 'No stub configured for: ' . $url );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
+	/**
+	 * @param array<string, mixed>|WP_Error $response
+	 */
+	function wp_remote_retrieve_body( $response ): string {
+		if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+			return '';
+		}
+		return (string) ( $response['body'] ?? '' );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	/**
+	 * @param array<string, mixed>|WP_Error $response
+	 * @return int|string
+	 */
+	function wp_remote_retrieve_response_code( $response ) {
+		if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+			return '';
+		}
+		return $response['response']['code'] ?? '';
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_headers' ) ) {
+	/**
+	 * @param array<string, mixed>|WP_Error $response
+	 * @return array<string, string>|\Requests_Utility_CaseInsensitiveDictionary
+	 */
+	function wp_remote_retrieve_headers( $response ): array {
+		if ( is_wp_error( $response ) || ! is_array( $response ) ) {
+			return [];
+		}
+		return (array) ( $response['headers'] ?? [] );
+	}
+}
+
+if ( ! function_exists( 'register_rest_route' ) ) {
+	/**
+	 * Recordable stub for register_rest_route.
+	 *
+	 * @param array<int, array<string, mixed>> $args
+	 */
+	function register_rest_route( string $namespace, string $route, array $args = [], bool $override = false ): bool {
+		$GLOBALS['wp_security_test_rest_routes'][] = compact( 'namespace', 'route', 'args' );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'rest_authorization_required_code' ) ) {
+	function rest_authorization_required_code(): int {
+		return 401;
+	}
+}
+
+// -----------------------------------------------------------------------------
+// wp_get_theme() stub — returns an object whose get_stylesheet() and get()
+// methods can be configured via $GLOBALS['wp_security_test_theme'].
+// -----------------------------------------------------------------------------
+
+if ( ! function_exists( 'wp_get_theme' ) ) {
+	function wp_get_theme( ?string $stylesheet = null ): object {
+		$theme = $GLOBALS['wp_security_test_theme'] ?? [
+			'stylesheet' => 'twentytwentyfour',
+			'Version'    => '1.0.0',
+		];
+		return new class( $theme ) {
+
+			/** @param array<string, string> $data */
+			public function __construct( private array $data ) {}
+
+			public function get_stylesheet(): string {
+				return $this->data['stylesheet'] ?? '';
+			}
+
+			/**
+			 * @return mixed
+			 */
+			public function get( string $header ) {
+				return $this->data[ $header ] ?? '';
+			}
+		};
+	}
+}

@@ -15,6 +15,7 @@ use WPSecurity\Persistence\Migrator;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
+use WPSecurity\Rest\SettingsController;
 use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
 use WPSecurity\Modules\Database\DatabaseModule;
 use WPSecurity\Modules\Dns\DnsModule;
@@ -149,6 +150,7 @@ final class Plugin {
 				$container->get( ScansController::class )->register();
 				$container->get( DashboardController::class )->register();
 				$container->get( ModulesController::class )->register();
+				$container->get( SettingsController::class )->register();
 			}
 		);
 

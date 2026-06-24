@@ -7,7 +7,6 @@ namespace WPSecurity\Modules\PluginsThemes;
 use WPSecurity\Contracts\Module;
 use WPSecurity\Modules\PluginsThemes\Checks\InactivePluginsCheck;
 use WPSecurity\Modules\PluginsThemes\Checks\PluginUpdatesCheck;
-use WPSecurity\Modules\PluginsThemes\Checks\VulnerabilityAdvisoryCheck;
 
 /**
  * Plugins & Themes module — update hygiene and known CVE detection.
@@ -33,7 +32,6 @@ class PluginsThemesModule implements Module {
 		$checks = [
 			new PluginUpdatesCheck(),
 			new InactivePluginsCheck(),
-			new VulnerabilityAdvisoryCheck(),
 		];
 
 		/**

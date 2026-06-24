@@ -93,6 +93,7 @@ final class CoreIntegrityModuleTest extends TestCase {
 		$this->assertContains( 'core_integrity.wp_config', $ids );
 		$this->assertContains( 'core_integrity.xmlrpc', $ids );
 		$this->assertContains( 'core_integrity.rest_user_enumeration', $ids );
+		$this->assertContains( 'core_integrity.vulnerability_advisory', $ids );
 	}
 
 	public function test_filter_can_add_extra_check(): void {
