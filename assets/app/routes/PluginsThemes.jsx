@@ -1,46 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
+
 import { __ } from '@wordpress/i18n';
-import { fetchModuleFindings } from '../api/modules';
-import { FindingItem } from '../components/FindingItem';
 import { ModuleScanButton } from '../components/ModuleScanButton';
+import { ModuleFindings } from '../components/ModuleFindings';
 
 export function PluginsThemes() {
-	const { data: findings, isLoading, isError } = useQuery( {
-		queryKey: [ 'module-findings', 'plugins_themes' ],
-		queryFn:  () => fetchModuleFindings( 'plugins_themes' ),
-	} );
 
 	return (
 		<div className="wpsec-section wrap">
-			<h1>{ __( 'Plugins & Themes', 'wp-security' ) }</h1>
-			<ModuleScanButton moduleId="plugins_themes" />
+			<header className="wpsec-page__header">
+				<h1>{ __( 'Plugins & Themes', 'wp-security' ) }</h1>
+				<ModuleScanButton moduleId="plugins_themes" />
+			</header>
 
-			{ isLoading && (
-				<p>{ __( 'Loading Plugins & Themes findings…', 'wp-security' ) }</p>
-			) }
-
-			{ isError && (
-				<p className="wpsec-findings__error">
-					{ __( 'Failed to load Plugins & Themes findings. Please try again.', 'wp-security' ) }
-				</p>
-			) }
-
-			{ ! isLoading && ! isError && ( ! findings || findings.length === 0 ) && (
-				<p className="wpsec-findings__empty">
-					{ __( 'No findings yet. Run a scan to audit your plugins and themes.', 'wp-security' ) }
-				</p>
-			) }
-
-			{ findings && findings.length > 0 && (
-				<ul
-					className="wpsec-findings-list"
-					aria-label={ __( 'Plugins & Themes findings', 'wp-security' ) }
-				>
-					{ findings.map( ( finding ) => (
-						<FindingItem key={ finding.check_id } finding={ finding } />
-					) ) }
-				</ul>
-			) }
+			<ModuleFindings 
+				moduleId="plugins_themes" 
+				loadingMessage={ __( 'Loading plugins & themes findings…', 'wp-security' ) } 
+				errorMessage={ __( 'Failed to load plugins & themes findings. Please try again.', 'wp-security' ) } 
+				emptyMessage={ __( 'No findings yet. Run a scan to audit your plugins & themes.', 'wp-security' ) } 
+				ariaLabel={ __( 'Plugins & Themes findings', 'wp-security' ) } />
 		</div>
 	);
 }

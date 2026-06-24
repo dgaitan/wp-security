@@ -5,6 +5,13 @@
 	padding: $wpsec-spacing-lg;
 }
 
+.wpsec-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: $wpsec-spacing-lg;
+}
+
 .wpsec-findings__empty {
 	color: $wpsec-color-muted;
 	font-style: italic;
