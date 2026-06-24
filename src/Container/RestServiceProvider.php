@@ -11,6 +11,7 @@ use WPSecurity\Persistence\ScanRunRepository;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
+use WPSecurity\Rest\SettingsController;
 
 /**
  * Wires the REST controllers into the container.
@@ -37,6 +38,11 @@ final class RestServiceProvider extends ServiceProvider {
 				$c->get( ModuleRegistry::class ),
 				$c->get( FindingRepository::class ),
 			)
+		);
+
+		$this->container->singleton(
+			SettingsController::class,
+			static fn (): SettingsController => new SettingsController()
 		);
 	}
 }

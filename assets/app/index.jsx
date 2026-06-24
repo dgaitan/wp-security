@@ -26,6 +26,7 @@ import { Users } from './routes/Users';
 import { Performance } from './routes/Performance';
 import { Accessibility } from './routes/Accessibility';
 import { Seo } from './routes/Seo';
+import { Settings } from './routes/Settings';
 import './styles/index.scss';
 
 // Configure api-fetch with the nonce from the inline bootstrap data.
@@ -74,6 +75,7 @@ const router = createHashRouter( [
 			{ path: 'performance', element: <Performance /> },
 			{ path: 'accessibility', element: <Accessibility /> },
 			{ path: 'seo', element: <Seo /> },
+			{ path: 'settings', element: <Settings /> },
 		],
 	},
 ] );
