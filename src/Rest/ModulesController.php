@@ -4,9 +4,10 @@ declare( strict_types=1 );
 
 namespace WPSecurity\Rest;
 
+use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
-use WP_Error;
+use WPSecurity\Admin\ModuleRegistry;
 
 /**
  * Module and findings endpoints.
@@ -15,9 +16,12 @@ use WP_Error;
  *   GET /wp-security/v1/modules/{id}/findings         — findings for one module's latest run
  *   POST /wp-security/v1/findings/external            — ingest browser-side findings (axe-core)
  *
- * TODO Sprint 3: implement all methods.
+ * The index() and findings() methods return static shapes for Sprint 3; Sprint 4
+ * wires the real data by injecting ScanRunRepository and FindingRepository.
  */
 class ModulesController extends AbstractController {
+
+	public function __construct( private ModuleRegistry $registry ) {}
 
 	public function register(): void {
 		register_rest_route(
@@ -58,12 +62,26 @@ class ModulesController extends AbstractController {
 	}
 
 	public function index( WP_REST_Request $request ): WP_REST_Response {
-		// TODO Sprint 3.
-		return $this->respond( [] );
+		$modules = [];
+		foreach ( $this->registry->all() as $module ) {
+			$modules[] = [
+				'id'    => $module->id(),
+				'label' => $module->label(),
+				'icon'  => $module->icon(),
+				'score' => null,
+			];
+		}
+		return $this->respond( $modules );
 	}
 
 	public function findings( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		// TODO Sprint 3.
+		$id = (string) $request->get_param( 'id' );
+		if ( ! $this->registry->has( $id ) ) {
+			return $this->notFound(
+				/* translators: %s: module ID */
+				sprintf( __( 'Module "%s" not found.', 'wp-security' ), esc_html( $id ) )
+			);
+		}
 		return $this->respond( [] );
 	}
 

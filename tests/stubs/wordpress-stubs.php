@@ -282,3 +282,108 @@ if ( ! function_exists( 'as_next_scheduled_action' ) ) {
 		return $GLOBALS['wp_security_test_as_next'] ?? false;
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Sprint 3 — admin page and REST bootstrap stubs.
+//
+// These cover the WordPress functions called by AdminPage::enqueueAssets() and
+// the REST bootstrap helpers used in DashboardController and Plugin.
+// Recordable stubs push their arguments into $GLOBALS buckets so tests can
+// assert what the production code asked WordPress to do.
+// -----------------------------------------------------------------------------
+
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( string $tag, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+		return add_filter( $tag, $callback, $priority, $accepted_args );
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( string $capability, mixed ...$args ): bool {
+		return $GLOBALS['wp_security_test_can'][ $capability ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+	/**
+	 * @param string|\WP_Error $message
+	 * @param array<string, mixed> $args
+	 * @throws \RuntimeException Always — unit tests catch this to assert wp_die was called.
+	 */
+	function wp_die( $message = '', string $title = '', array $args = [] ): void {
+		throw new \RuntimeException( is_string( $message ) ? $message : $message->get_error_message() );
+	}
+}
+
+if ( ! function_exists( 'wp_register_script' ) ) {
+	/**
+	 * @param string[]             $deps
+	 * @param string|bool|null     $ver
+	 */
+	function wp_register_script( string $handle, string|bool $src, array $deps = [], $ver = false, bool $in_footer = false ): bool {
+		$GLOBALS['wp_security_test_registered_scripts'][] = compact( 'handle', 'src', 'deps' );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_enqueue_script' ) ) {
+	/**
+	 * @param string[]             $deps
+	 * @param string|bool|null     $ver
+	 */
+	function wp_enqueue_script( string $handle, string|bool $src = false, array $deps = [], $ver = false, bool $in_footer = false ): void {
+		$GLOBALS['wp_security_test_enqueued_scripts'][] = $handle;
+	}
+}
+
+if ( ! function_exists( 'wp_add_inline_script' ) ) {
+	function wp_add_inline_script( string $handle, string $data, string $position = 'after' ): bool {
+		$GLOBALS['wp_security_test_inline_scripts'][] = compact( 'handle', 'data', 'position' );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_register_style' ) ) {
+	/**
+	 * @param string[]             $deps
+	 * @param string|bool|null     $ver
+	 */
+	function wp_register_style( string $handle, string|bool $src, array $deps = [], $ver = false, string $media = 'all' ): bool {
+		$GLOBALS['wp_security_test_registered_styles'][] = compact( 'handle', 'src' );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_enqueue_style' ) ) {
+	/**
+	 * @param string[]             $deps
+	 * @param string|bool|null     $ver
+	 */
+	function wp_enqueue_style( string $handle, string|bool $src = false, array $deps = [], $ver = false, string $media = 'all' ): void {
+		$GLOBALS['wp_security_test_enqueued_styles'][] = $handle;
+	}
+}
+
+if ( ! function_exists( 'rest_url' ) ) {
+	function rest_url( string $path = '' ): string {
+		return 'https://example.test/wp-json/' . ltrim( $path, '/' );
+	}
+}
+
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+	function wp_create_nonce( string $action = '-1' ): string {
+		return 'test_nonce_' . $action;
+	}
+}
+
+if ( ! defined( 'WP_SECURITY_VERSION' ) ) {
+	define( 'WP_SECURITY_VERSION', '0.1.0-test' );
+}
+
+if ( ! defined( 'WP_SECURITY_URL' ) ) {
+	define( 'WP_SECURITY_URL', 'https://example.test/wp-content/plugins/wp-security/' );
+}
+
+if ( ! defined( 'WP_SECURITY_DIR' ) ) {
+	define( 'WP_SECURITY_DIR', dirname( __DIR__, 2 ) . '/' );
+}

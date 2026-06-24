@@ -79,6 +79,22 @@ Never bypass this chain. Never write scan logic directly in a controller or serv
 
 ---
 
+## Styles
+
+**No inline styles permitted.** Every visual concern belongs in SCSS.
+
+- SCSS files live in `assets/app/styles/`.
+- Entry point: `assets/app/styles/index.scss` — imported from `assets/app/index.jsx`.
+- Partials follow the `_name.scss` convention and are `@use`d from `index.scss`.
+- All class names are prefixed `wpsec-` to avoid collisions with wp-admin.
+- BEM naming: `wpsec-block`, `wpsec-block__element`, `wpsec-block--modifier`.
+- Variables (colours, spacing, typography) live in `_variables.scss`; always `@use 'variables' as *` in partials that need them.
+- Dynamic colours (e.g. per-grade score colours) are expressed with `data-*` attribute selectors in SCSS — never as computed inline styles.
+- `sass` and `sass-loader` ship with `@wordpress/scripts`; no separate install needed.
+- `npm run build` outputs both `build/index.js` and `build/index.css`; `AdminPage::enqueueAssets()` enqueues the CSS automatically when `build/index.css` exists.
+
+---
+
 ## Testing expectations
 
 - Every new Check class gets a corresponding unit test in `tests/Unit/`.

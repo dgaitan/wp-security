@@ -1,0 +1,8 @@
+// WP Security — stylesheet entry point.
+// All partials are imported here; this file is consumed by assets/app/index.jsx.
+
+@use 'layout';
+@use 'nav';
+@use 'score-card';
+@use 'dashboard';
+@use 'module-page';
