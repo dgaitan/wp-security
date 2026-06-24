@@ -35,5 +35,5 @@ Thumbs.db
 # Local Claude overrides (personal notes, not team-shared)
 CLAUDE.local.md
 Plans/
-.agents/
-.claude/
+/.agents/
+/.claude/
