@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { __ } from '@wordpress/i18n';
 import { fetchModuleFindings } from '../api/modules';
 import { FindingItem } from '../components/FindingItem';
+import { ModuleScanButton } from '../components/ModuleScanButton';
 
 export function CoreIntegrity() {
 	const { data: findings, isLoading, isError } = useQuery( {
@@ -12,6 +13,7 @@ export function CoreIntegrity() {
 	return (
 		<div className="wpsec-section wrap">
 			<h1>{ __( 'WordPress Health', 'wp-security' ) }</h1>
+			<ModuleScanButton moduleId="core_integrity" />
 
 			{ isLoading && (
 				<p>{ __( 'Loading WordPress health findings…', 'wp-security' ) }</p>

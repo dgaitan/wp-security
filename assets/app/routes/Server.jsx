@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { __ } from '@wordpress/i18n';
 import { fetchModuleFindings } from '../api/modules';
 import { FindingItem } from '../components/FindingItem';
+import { ModuleScanButton } from '../components/ModuleScanButton';
 
 export function Server() {
 	const { data: findings, isLoading, isError } = useQuery( {
@@ -12,6 +13,7 @@ export function Server() {
 	return (
 		<div className="wpsec-section wrap">
 			<h1>{ __( 'Server Health', 'wp-security' ) }</h1>
+			<ModuleScanButton moduleId="server" />
 
 			{ isLoading && (
 				<p>{ __( 'Loading server health findings…', 'wp-security' ) }</p>

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { __ } from '@wordpress/i18n';
 import { fetchModuleFindings } from '../api/modules';
 import { FindingItem } from '../components/FindingItem';
+import { ModuleScanButton } from '../components/ModuleScanButton';
 
 export function Headers() {
 	const { data: findings, isLoading, isError } = useQuery( {
@@ -12,6 +13,7 @@ export function Headers() {
 	return (
 		<div className="wpsec-section wrap">
 			<h1>{ __( 'Security Headers', 'wp-security' ) }</h1>
+			<ModuleScanButton moduleId="headers" />
 
 			{ isLoading && (
 				<p>{ __( 'Loading security header findings…', 'wp-security' ) }</p>

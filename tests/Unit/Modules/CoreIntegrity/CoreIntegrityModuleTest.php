@@ -88,6 +88,8 @@ final class CoreIntegrityModuleTest extends TestCase {
 			$ids[] = $check->id();
 		}
 		$this->assertContains( 'core_integrity.core_files', $ids );
+		$this->assertContains( 'core_integrity.wp_content_structure', $ids );
+		$this->assertContains( 'core_integrity.suspicious_files', $ids );
 		$this->assertContains( 'core_integrity.wp_config', $ids );
 		$this->assertContains( 'core_integrity.xmlrpc', $ids );
 		$this->assertContains( 'core_integrity.rest_user_enumeration', $ids );

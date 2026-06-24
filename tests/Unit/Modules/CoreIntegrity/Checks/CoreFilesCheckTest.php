@@ -134,4 +134,33 @@ final class CoreFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::PASS, $finding->status );
 	}
+
+	public function test_wp_content_files_in_checksums_are_skipped(): void {
+		// The WordPress API should never include wp-content/ paths, but we
+		// explicitly filter them out as a safety measure. Even if a checksum
+		// entry for a wp-content file exists with a deliberate mismatch, it
+		// must not be flagged — that directory is handled by a dedicated check.
+		$tmpDir = sys_get_temp_dir() . '/wpsec-core-scope-' . uniqid() . '/';
+		mkdir( $tmpDir . 'wp-content/', 0777, true );
+
+		$wcFile = $tmpDir . 'wp-content/suspicious.php';
+		file_put_contents( $wcFile, '<?php // user-modified plugin file' );
+
+		$context = new MockContext(
+			wpRootPath: $tmpDir,
+			values: [
+				'core_checksums' => [
+					'wp-content/suspicious.php' => md5( '<?php // original' ),
+				],
+			]
+		);
+
+		$finding = $this->check->run( $context );
+
+		unlink( $wcFile );
+		rmdir( $tmpDir . 'wp-content/' );
+		rmdir( $tmpDir );
+
+		$this->assertSame( Status::PASS, $finding->status );
+	}
 }

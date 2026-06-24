@@ -169,16 +169,13 @@ class SuspiciousFilesCheck implements Check {
 			status:         Status::FAIL,
 			severity:       $severity,
 			title:          $this->label(),
-			description:    sprintf(
-				/* translators: %d: number of suspicious files detected */
-				_n(
-					'%d suspicious file was detected in wp-content.',
-					'%d suspicious files were detected in wp-content.',
-					$total,
-					'wp-security'
+			description:    1 === $total
+				? __( '1 suspicious file was detected in wp-content.', 'wp-security' )
+				: sprintf(
+					/* translators: %d: number of suspicious files detected */
+					__( '%d suspicious files were detected in wp-content.', 'wp-security' ),
+					$total
 				),
-				$total
-			),
 			recommendation: __( 'Review and remove any unrecognised files. PHP files in the uploads directory are a common web-shell vector. Remove any wp-config backups immediately — they expose database credentials if downloaded. Restore modified theme files from a trusted backup.', 'wp-security' ),
 			evidence:       $evidence,
 		);
@@ -199,7 +196,7 @@ class SuspiciousFilesCheck implements Check {
 		$themesPrefix  = $contentPath . 'themes' . DIRECTORY_SEPARATOR;
 
 		try {
-			/** @var RecursiveIteratorIterator<\SplFileInfo> $iterator */
+			/** @var RecursiveIteratorIterator<RecursiveDirectoryIterator> $iterator */
 			$iterator = new RecursiveIteratorIterator(
 				new RecursiveDirectoryIterator(
 					$contentPath,
@@ -251,8 +248,8 @@ class SuspiciousFilesCheck implements Check {
 					$themeViolations[] = $relPath;
 				}
 			}
-		} catch ( UnexpectedValueException ) {
-			// Directory not readable — skip silently rather than surfacing a PHP error.
+		} catch ( UnexpectedValueException $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Unreadable directory; skip silently.
+			unset( $e );
 		}
 
 		return [
