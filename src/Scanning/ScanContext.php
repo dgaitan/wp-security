@@ -16,6 +16,14 @@ use WPSecurity\VulnerabilityAdvisor\VulnerabilityAdvisor;
  */
 class ScanContext implements Context {
 
+	/** @var array<string, mixed> */
+	private array $resolved = [];
+
+	/** @var array<string, mixed>|\WP_Error|null */
+	private mixed $loopbackResponse  = null;
+	private bool $loopbackResolved   = false;
+	private float $loopbackElapsedMs = 0.0;
+
 	public function wpRootPath(): string {
 		return ABSPATH;
 	}
@@ -72,7 +80,11 @@ class ScanContext implements Context {
 	 * @return mixed
 	 */
 	public function get( string $key ): mixed {
-		return match ( $key ) {
+		if ( array_key_exists( $key, $this->resolved ) ) {
+			return $this->resolved[ $key ];
+		}
+
+		$value = match ( $key ) {
 			'plugins'                 => function_exists( 'get_plugins' ) ? get_plugins() : [],
 			'themes'                  => function_exists( 'wp_get_themes' ) ? wp_get_themes() : [],
 			'active_plugins'          => get_option( 'active_plugins', [] ),
@@ -106,6 +118,9 @@ class ScanContext implements Context {
 			'sitemap_reachable'       => $this->resolveSitemapReachable(),
 			default                   => null,
 		};
+
+		$this->resolved[ $key ] = $value;
+		return $value;
 	}
 
 	private function resolveOpcacheEnabled(): bool {
@@ -116,16 +131,33 @@ class ScanContext implements Context {
 		return false !== $status && ! empty( $status['opcache_enabled'] );
 	}
 
+	/**
+	 * Makes a single loopback GET to the home URL per ScanContext instance.
+	 * All three loopback-backed keys (response_headers, ttfb_ms, homepage_html)
+	 * share this one request so the site is only hit once per scan.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private function sharedLoopback(): mixed {
+		if ( ! $this->loopbackResolved ) {
+			$start                   = microtime( true );
+			$this->loopbackResponse  = wp_remote_get(
+				$this->homeUrl(),
+				[
+					'timeout'     => 10,
+					'sslverify'   => false,
+					'redirection' => 5,
+				]
+			);
+			$this->loopbackElapsedMs = ( microtime( true ) - $start ) * 1000.0;
+			$this->loopbackResolved  = true;
+		}
+		return $this->loopbackResponse;
+	}
+
 	/** @return array<string, string>|null */
 	private function resolveResponseHeaders(): ?array {
-		$response = wp_remote_get(
-			$this->homeUrl(),
-			[
-				'timeout'     => 10,
-				'sslverify'   => false,
-				'redirection' => 5,
-			]
-		);
+		$response = $this->sharedLoopback();
 
 		if ( is_wp_error( $response ) ) {
 			return null;
@@ -295,15 +327,7 @@ class ScanContext implements Context {
 	}
 
 	private function resolveTtfb(): ?float {
-		$start    = microtime( true );
-		$response = wp_remote_get(
-			$this->homeUrl(),
-			[
-				'timeout'   => 10,
-				'sslverify' => false,
-			]
-		);
-		$duration = ( microtime( true ) - $start ) * 1000;
+		$response = $this->sharedLoopback();
 
 		if ( is_wp_error( $response ) ) {
 			return null;
@@ -314,17 +338,11 @@ class ScanContext implements Context {
 			return null;
 		}
 
-		return round( $duration, 1 );
+		return round( $this->loopbackElapsedMs, 1 );
 	}
 
 	private function resolveHomepageHtml(): ?string {
-		$response = wp_remote_get(
-			$this->homeUrl(),
-			[
-				'timeout'   => 10,
-				'sslverify' => false,
-			]
-		);
+		$response = $this->sharedLoopback();
 
 		if ( is_wp_error( $response ) ) {
 			return null;

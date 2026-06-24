@@ -411,10 +411,16 @@ if ( ! function_exists( 'wp_remote_get' ) ) {
 	/**
 	 * Recordable HTTP stub — returns a pre-configured response or WP_Error.
 	 *
+	 * Increments $GLOBALS['wp_security_test_http_call_count'][$url] on every
+	 * invocation so tests can assert how many times a URL was fetched.
+	 *
 	 * @param array<string, mixed> $args
 	 * @return array<string, mixed>|WP_Error
 	 */
 	function wp_remote_get( string $url, array $args = [] ) {
+		$GLOBALS['wp_security_test_http_call_count'][ $url ] =
+			( $GLOBALS['wp_security_test_http_call_count'][ $url ] ?? 0 ) + 1;
+
 		$responses = $GLOBALS['wp_security_test_http_responses'] ?? [];
 
 		// Strip query string for lookup when an exact match is not found.
@@ -423,6 +429,7 @@ if ( ! function_exists( 'wp_remote_get' ) ) {
 				return [
 					'response' => [ 'code' => $response['code'] ?? 200 ],
 					'body'     => $response['body'] ?? '',
+					'headers'  => $response['headers'] ?? [],
 				];
 			}
 		}
