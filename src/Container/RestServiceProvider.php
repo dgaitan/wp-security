@@ -37,6 +37,7 @@ final class RestServiceProvider extends ServiceProvider {
 			static fn ( Container $c ): ModulesController => new ModulesController(
 				$c->get( ModuleRegistry::class ),
 				$c->get( FindingRepository::class ),
+				$c->get( ScanRunRepository::class ),
 			)
 		);
 

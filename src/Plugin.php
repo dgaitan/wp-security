@@ -16,11 +16,14 @@ use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
 use WPSecurity\Rest\SettingsController;
+use WPSecurity\Modules\Accessibility\AccessibilityModule;
 use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
 use WPSecurity\Modules\Database\DatabaseModule;
 use WPSecurity\Modules\Dns\DnsModule;
 use WPSecurity\Modules\Headers\HeadersModule;
+use WPSecurity\Modules\Performance\PerformanceModule;
 use WPSecurity\Modules\PluginsThemes\PluginsThemesModule;
+use WPSecurity\Modules\Seo\SeoModule;
 use WPSecurity\Modules\Server\ServerModule;
 use WPSecurity\Modules\Users\UsersModule;
 use WPSecurity\Scanning\ScanManager;
@@ -136,6 +139,9 @@ final class Plugin {
 					new PluginsThemesModule(),
 					new DatabaseModule(),
 					new UsersModule(),
+					new PerformanceModule(),
+					new AccessibilityModule(),
+					new SeoModule(),
 				]
 			)
 		);

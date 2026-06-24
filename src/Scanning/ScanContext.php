@@ -64,6 +64,10 @@ class ScanContext implements Context {
 	 *   'suspicious_post_count'   → int|null — published posts containing eval()/base64_decode() (uses $wpdb->prepare())
 	 *   'dormant_user_count'      → int|null — users with last_login_at older than 90 days (uses $wpdb->prepare())
 	 *   'admin_user_count'        → int|null — number of users with the administrator role
+	 *   'ttfb_ms'                 → float|null — time to first byte in milliseconds (loopback GET to homeUrl)
+	 *   'homepage_html'           → string|null — raw HTML body of homeUrl (loopback GET)
+	 *   'robots_txt_status'       → int|null — HTTP status code for GET {homeUrl}/robots.txt
+	 *   'sitemap_reachable'       → bool|null — true when /sitemap.xml returns 2xx/3xx
 	 *
 	 * @return mixed
 	 */
@@ -96,6 +100,10 @@ class ScanContext implements Context {
 			'suspicious_post_count'   => $this->resolveSuspiciousCount( 'posts' ),
 			'dormant_user_count'      => $this->resolveDormantUserCount(),
 			'admin_user_count'        => $this->resolveAdminUserCount(),
+			'ttfb_ms'                 => $this->resolveTtfb(),
+			'homepage_html'           => $this->resolveHomepageHtml(),
+			'robots_txt_status'       => $this->resolveRobotsTxtStatus(),
+			'sitemap_reachable'       => $this->resolveSitemapReachable(),
 			default                   => null,
 		};
 	}
@@ -284,5 +292,84 @@ class ScanContext implements Context {
 			]
 		);
 		return count( $admins );
+	}
+
+	private function resolveTtfb(): ?float {
+		$start    = microtime( true );
+		$response = wp_remote_get(
+			$this->homeUrl(),
+			[
+				'timeout'   => 10,
+				'sslverify' => false,
+			]
+		);
+		$duration = ( microtime( true ) - $start ) * 1000;
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 400 ) {
+			return null;
+		}
+
+		return round( $duration, 1 );
+	}
+
+	private function resolveHomepageHtml(): ?string {
+		$response = wp_remote_get(
+			$this->homeUrl(),
+			[
+				'timeout'   => 10,
+				'sslverify' => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $code ) {
+			return null;
+		}
+
+		return wp_remote_retrieve_body( $response );
+	}
+
+	private function resolveRobotsTxtStatus(): ?int {
+		$url      = rtrim( $this->homeUrl(), '/' ) . '/robots.txt';
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'   => 10,
+				'sslverify' => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		return (int) wp_remote_retrieve_response_code( $response );
+	}
+
+	private function resolveSitemapReachable(): ?bool {
+		$url      = rtrim( $this->homeUrl(), '/' ) . '/sitemap.xml';
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'   => 10,
+				'sslverify' => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		return $code >= 200 && $code < 400;
 	}
 }
