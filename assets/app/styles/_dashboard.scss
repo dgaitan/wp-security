@@ -1,0 +1,38 @@
+@use 'variables' as *;
+
+.wpsec-dashboard {
+	padding: $wpsec-spacing-lg;
+}
+
+.wpsec-dashboard__meta {
+	color: $wpsec-color-muted;
+	font-size: $wpsec-font-base;
+	margin-top: $wpsec-spacing-sm;
+}
+
+.wpsec-dashboard__overall {
+	display: inline-flex;
+	align-items: center;
+	gap: $wpsec-spacing-sm;
+	margin-bottom: $wpsec-spacing-lg;
+}
+
+.wpsec-dashboard__overall-label {
+	font-weight: 600;
+}
+
+.wpsec-dashboard__overall-score {
+	font-size: $wpsec-font-xl;
+	font-weight: 700;
+}
+
+.wpsec-dashboard__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: $wpsec-spacing-md;
+	margin-top: $wpsec-spacing-lg;
+}
+
+.wpsec-dashboard__notice {
+	margin-top: $wpsec-spacing-md;
+}

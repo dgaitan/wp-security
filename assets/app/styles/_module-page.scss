@@ -1,0 +1,6 @@
+@use 'variables' as *;
+
+// Shared styles for all audit-section route pages.
+.wpsec-section {
+	padding: $wpsec-spacing-lg;
+}

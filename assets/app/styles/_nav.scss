@@ -1,0 +1,43 @@
+@use 'variables' as *;
+
+.wpsec-nav {
+	width: $wpsec-nav-width;
+	flex-shrink: 0;
+	border-right: 1px solid $wpsec-color-border;
+	padding: $wpsec-spacing-md 0;
+}
+
+.wpsec-nav__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wpsec-nav__item {
+	margin: 0;
+}
+
+.wpsec-nav__link {
+	display: flex;
+	align-items: center;
+	gap: $wpsec-spacing-xs + 2px; // 6px
+	padding: $wpsec-spacing-sm $wpsec-spacing-md - 4px; // 8px 12px
+	text-decoration: none;
+	border-radius: $wpsec-radius-sm;
+	font-weight: 400;
+	color: $wpsec-color-text;
+	transition: background 0.1s ease, color 0.1s ease;
+
+	&:hover,
+	&:focus {
+		color: $wpsec-color-primary;
+		background: $wpsec-color-primary-light;
+		outline: none;
+	}
+
+	&--active {
+		font-weight: 600;
+		color: $wpsec-color-primary;
+		background: $wpsec-color-primary-light;
+	}
+}

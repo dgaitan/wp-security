@@ -66,7 +66,7 @@ class AdminPage {
 		wp_enqueue_script( 'wp-security-app' );
 
 		if ( file_exists( WP_SECURITY_DIR . 'build/index.css' ) ) {
-			wp_register_style( 'wp-security-app', WP_SECURITY_URL . 'build/index.css', [], WP_SECURITY_VERSION );
+			wp_register_style( 'wp-security-app', WP_SECURITY_URL . 'build/index.css', [], $asset['version'] );
 			wp_enqueue_style( 'wp-security-app' );
 		}
 	}

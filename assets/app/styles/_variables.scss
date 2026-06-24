@@ -1,0 +1,44 @@
+// WP admin color tokens — mirrors the palette used by wp-admin itself.
+
+// Brand / interactive
+$wpsec-color-primary:       #2271b1;
+$wpsec-color-primary-hover: #135e96;
+$wpsec-color-primary-light: #f0f6fc;
+
+// Text
+$wpsec-color-text:          #1d2327;
+$wpsec-color-muted:         #646970;
+
+// Surfaces & borders
+$wpsec-color-white:         #fff;
+$wpsec-color-border:        #dcdcde;
+$wpsec-color-bg:            #f0f0f1; // wp-admin body background
+
+// Grade palette
+$wpsec-color-grade-a:       #00a32a;
+$wpsec-color-grade-b:       #46b450;
+$wpsec-color-grade-c:       #dba617;
+$wpsec-color-grade-d:       #d63638;
+$wpsec-color-grade-f:       #d63638;
+$wpsec-color-grade-none:    #8c8f94;
+
+// Spacing scale
+$wpsec-spacing-xs:  4px;
+$wpsec-spacing-sm:  8px;
+$wpsec-spacing-md:  16px;
+$wpsec-spacing-lg:  24px;
+$wpsec-spacing-xl:  32px;
+
+// Layout
+$wpsec-nav-width:   200px;
+
+// Typography
+$wpsec-font-sm:     12px;
+$wpsec-font-base:   13px;
+$wpsec-font-lg:     18px;
+$wpsec-font-xl:     24px;
+$wpsec-font-2xl:    32px;
+
+// Radii
+$wpsec-radius-sm:   3px;
+$wpsec-radius-md:   4px;

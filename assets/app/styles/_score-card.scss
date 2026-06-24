@@ -1,0 +1,70 @@
+@use 'variables' as *;
+
+// Grade-colour map — drives the [data-grade] attribute selectors below.
+$wpsec-grade-colors: (
+	"a": $wpsec-color-grade-a,
+	"b": $wpsec-color-grade-b,
+	"c": $wpsec-color-grade-c,
+	"d": $wpsec-color-grade-d,
+	"f": $wpsec-color-grade-f,
+);
+
+.wpsec-score-card {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	border: 1px solid $wpsec-color-border;
+	border-radius: $wpsec-radius-md;
+	padding: $wpsec-spacing-lg - 4px; // 20px
+	background: $wpsec-color-white;
+	transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+	&:hover,
+	&:focus {
+		border-color: $wpsec-color-primary;
+		box-shadow: 0 0 0 1px $wpsec-color-primary;
+		outline: none;
+	}
+
+	// Grade-specific colours applied to both score number and grade letter.
+	@each $grade, $color in $wpsec-grade-colors {
+		&[data-grade="#{$grade}"] {
+			.wpsec-score-card__score,
+			.wpsec-score-card__grade {
+				color: $color;
+			}
+		}
+	}
+
+	// No scan yet — neutral grey.
+	&[data-grade="none"] {
+		.wpsec-score-card__score,
+		.wpsec-score-card__grade {
+			color: $wpsec-color-grade-none;
+		}
+	}
+}
+
+.wpsec-score-card__label {
+	font-size: $wpsec-font-base;
+	color: $wpsec-color-muted;
+	margin-bottom: $wpsec-spacing-sm;
+}
+
+.wpsec-score-card__values {
+	display: flex;
+	align-items: baseline;
+	gap: $wpsec-spacing-sm;
+}
+
+.wpsec-score-card__score {
+	font-size: $wpsec-font-2xl;
+	font-weight: 700;
+	color: $wpsec-color-grade-none;
+}
+
+.wpsec-score-card__grade {
+	font-size: $wpsec-font-lg;
+	font-weight: 600;
+	color: $wpsec-color-grade-none;
+}

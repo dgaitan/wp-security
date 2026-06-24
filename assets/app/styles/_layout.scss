@@ -1,0 +1,12 @@
+@use 'variables' as *;
+
+// Top-level shell that hosts <Nav> on the left and <main> on the right.
+.wpsec-layout {
+	display: flex;
+	min-height: 600px;
+}
+
+.wpsec-main {
+	flex: 1;
+	overflow: auto;
+}

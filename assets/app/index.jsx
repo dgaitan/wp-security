@@ -26,6 +26,7 @@ import { Users } from './routes/Users';
 import { Performance } from './routes/Performance';
 import { Accessibility } from './routes/Accessibility';
 import { Seo } from './routes/Seo';
+import './styles/index.scss';
 
 // Configure api-fetch with the nonce from the inline bootstrap data.
 if ( window.wpSecurityData?.nonce ) {
@@ -47,9 +48,9 @@ const queryClient = new QueryClient( {
 function Layout() {
 	return (
 		<QueryClientProvider client={ queryClient }>
-			<div style={ { display: 'flex', minHeight: '600px' } }>
+			<div className="wpsec-layout">
 				<Nav />
-				<main style={ { flex: 1, overflow: 'auto' } }>
+				<main className="wpsec-main">
 					<Outlet />
 				</main>
 			</div>
