@@ -5,9 +5,12 @@ import { fetchSettings, updateSettings } from '../api/settings';
 
 export function Settings() {
 	const queryClient = useQueryClient();
-	const [ saved, setSaved ] = useState( false );
-	const [ provider, setProvider ] = useState( 'wpvulnerability' );
-	const [ apiKey, setApiKey ] = useState( '' );
+	const [ saved, setSaved ]               = useState( false );
+	const [ provider, setProvider ]         = useState( 'wpvulnerability' );
+	const [ apiKey, setApiKey ]             = useState( '' );
+	const [ frequency, setFrequency ]       = useState( 'daily' );
+	const [ alertEmail, setAlertEmail ]     = useState( '' );
+	const [ slackUrl, setSlackUrl ]         = useState( '' );
 
 	const { data: settings, isLoading, isError } = useQuery( {
 		queryKey: [ 'settings' ],
@@ -19,6 +22,9 @@ export function Settings() {
 		if ( settings ) {
 			setProvider( settings.vuln_advisor_provider ?? 'wpvulnerability' );
 			setApiKey( settings.wpscan_api_key ?? '' );
+			setFrequency( settings.scan_frequency ?? 'daily' );
+			setAlertEmail( settings.alert_email ?? '' );
+			setSlackUrl( settings.slack_webhook_url ?? '' );
 		}
 	}, [ settings ] );
 
@@ -56,7 +62,12 @@ export function Settings() {
 
 	function handleSubmit( e ) {
 		e.preventDefault();
-		const payload = { vuln_advisor_provider: provider };
+		const payload = {
+			vuln_advisor_provider: provider,
+			scan_frequency:        frequency,
+			alert_email:           alertEmail,
+			slack_webhook_url:     slackUrl,
+		};
 		if ( provider === 'wpscan' ) {
 			payload.wpscan_api_key = apiKey;
 		}
@@ -89,6 +100,7 @@ export function Settings() {
 			<form className="wpsec-settings-form" onSubmit={ handleSubmit }>
 				<table className="form-table" role="presentation">
 					<tbody>
+						{ /* Vulnerability Advisor */ }
 						<tr>
 							<th scope="row">
 								<label>
@@ -142,6 +154,76 @@ export function Settings() {
 										</p>
 									</div>
 								) }
+							</td>
+						</tr>
+
+						{ /* Scan Schedule */ }
+						<tr>
+							<th scope="row">
+								<label htmlFor="scan_frequency">
+									{ __( 'Scan Frequency', 'wp-security' ) }
+								</label>
+							</th>
+							<td>
+								<select
+									id="scan_frequency"
+									name="scan_frequency"
+									value={ frequency }
+									onChange={ ( e ) => setFrequency( e.target.value ) }
+								>
+									<option value="hourly">{ __( 'Hourly', 'wp-security' ) }</option>
+									<option value="daily">{ __( 'Daily', 'wp-security' ) }</option>
+									<option value="weekly">{ __( 'Weekly', 'wp-security' ) }</option>
+								</select>
+								<p className="description">
+									{ __( 'How often WP Security runs an automatic full scan.', 'wp-security' ) }
+								</p>
+							</td>
+						</tr>
+
+						{ /* Alert Email */ }
+						<tr>
+							<th scope="row">
+								<label htmlFor="alert_email">
+									{ __( 'Alert Email', 'wp-security' ) }
+								</label>
+							</th>
+							<td>
+								<input
+									id="alert_email"
+									name="alert_email"
+									type="email"
+									className="regular-text"
+									value={ alertEmail }
+									onChange={ ( e ) => setAlertEmail( e.target.value ) }
+									placeholder={ __( 'admin@example.com', 'wp-security' ) }
+								/>
+								<p className="description">
+									{ __( 'Receive an email when a new CRITICAL finding is discovered. Leave blank to disable.', 'wp-security' ) }
+								</p>
+							</td>
+						</tr>
+
+						{ /* Slack Webhook */ }
+						<tr>
+							<th scope="row">
+								<label htmlFor="slack_webhook_url">
+									{ __( 'Slack Webhook URL', 'wp-security' ) }
+								</label>
+							</th>
+							<td>
+								<input
+									id="slack_webhook_url"
+									name="slack_webhook_url"
+									type="url"
+									className="regular-text"
+									value={ slackUrl }
+									onChange={ ( e ) => setSlackUrl( e.target.value ) }
+									placeholder="https://hooks.slack.com/services/…"
+								/>
+								<p className="description">
+									{ __( 'Post a Slack message when a CRITICAL finding is discovered. Leave blank to disable.', 'wp-security' ) }
+								</p>
 							</td>
 						</tr>
 					</tbody>

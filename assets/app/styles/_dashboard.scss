@@ -67,6 +67,26 @@
 	font-size: $wpsec-font-sm;
 }
 
+// ---------------------------------------------------------------------------
+// Score trend sparkline.
+// ---------------------------------------------------------------------------
+
+.wpsec-dashboard__trend {
+	display: flex;
+	align-items: center;
+	gap: $wpsec-spacing-sm;
+	margin-bottom: $wpsec-spacing-md;
+}
+
+.wpsec-dashboard__trend-label {
+	font-size: $wpsec-font-sm;
+	color: $wpsec-color-muted;
+}
+
+.wpsec-sparkline {
+	flex-shrink: 0;
+}
+
 // Thin animated progress bar driven by the --scan-pct CSS variable.
 .wpsec-dashboard__scan-progress {
 	flex: 0 0 100%;

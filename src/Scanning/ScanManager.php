@@ -8,6 +8,7 @@ use WPSecurity\Admin\ModuleRegistry;
 use WPSecurity\Contracts\Context;
 use WPSecurity\Contracts\Scanner;
 use WPSecurity\Domain\Finding;
+use WPSecurity\Domain\Severity;
 use WPSecurity\Persistence\FindingRepository;
 use WPSecurity\Persistence\ScanRunRepository;
 use WPSecurity\Scoring\ScoringService;
@@ -147,6 +148,23 @@ class ScanManager implements Scanner {
 
 		$this->runs->updateScore( $runId, $overall->value );
 		$this->runs->updateStatus( $runId, 'complete' );
+
+		// Collect CRITICAL findings and fire the scan_complete action so alert
+		// handlers can notify site owners without coupling here.
+		$allFindings = [];
+		foreach ( $byModule as $moduleFindings ) {
+			foreach ( $moduleFindings as $finding ) {
+				$allFindings[] = $finding;
+			}
+		}
+		$criticals = array_values(
+			array_filter(
+				$allFindings,
+				static fn ( Finding $f ): bool => Severity::CRITICAL === $f->severity
+			)
+		);
+
+		do_action( 'wp_security/scan_complete', $runId, $criticals );
 	}
 
 	/**

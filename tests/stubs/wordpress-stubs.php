@@ -523,3 +523,89 @@ if ( ! function_exists( 'wp_get_theme' ) ) {
 		};
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Sprint 8 stubs — alerting, email, Slack, and hook firing.
+// -----------------------------------------------------------------------------
+
+if ( ! function_exists( 'do_action' ) ) {
+	/**
+	 * Fire registered action callbacks. Recordable: arguments pushed to
+	 * $GLOBALS['wp_security_test_actions_fired'] for assertion in tests.
+	 *
+	 * @param mixed ...$args
+	 */
+	function do_action( string $tag, mixed ...$args ): void {
+		$GLOBALS['wp_security_test_actions_fired'][ $tag ][] = $args;
+
+		if ( empty( $GLOBALS['wp_security_test_filters'][ $tag ] ) ) {
+			return;
+		}
+
+		$callbacks = $GLOBALS['wp_security_test_filters'][ $tag ];
+		ksort( $callbacks );
+		foreach ( $callbacks as $list ) {
+			foreach ( $list as $callback ) {
+				$callback( ...$args );
+			}
+		}
+	}
+}
+
+if ( ! function_exists( 'wp_mail' ) ) {
+	/**
+	 * Recordable stub: pushes sent mail into $GLOBALS['wp_security_test_mail_sent'].
+	 *
+	 * @param string|string[] $to
+	 * @param string|string[] $headers
+	 * @param string[]        $attachments
+	 */
+	function wp_mail( $to, string $subject, string $message, $headers = '', array $attachments = [] ): bool {
+		$GLOBALS['wp_security_test_mail_sent'][] = [
+			'to'      => $to,
+			'subject' => $subject,
+			'message' => $message,
+		];
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_post' ) ) {
+	/**
+	 * Recordable stub: pushes outgoing POST requests into
+	 * $GLOBALS['wp_security_test_http_posts'].
+	 *
+	 * @param array<string, mixed> $args
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	function wp_remote_post( string $url, array $args = [] ) {
+		$GLOBALS['wp_security_test_http_posts'][] = compact( 'url', 'args' );
+		return [
+			'response' => [ 'code' => 200 ],
+			'body'     => '',
+		];
+	}
+}
+
+if ( ! function_exists( 'sanitize_email' ) ) {
+	function sanitize_email( string $email ): string {
+		$email = strtolower( trim( $email ) );
+		return false !== filter_var( $email, FILTER_VALIDATE_EMAIL ) ? $email : '';
+	}
+}
+
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	/**
+	 * @param string[] $protocols
+	 */
+	function esc_url_raw( string $url, array $protocols = [] ): string {
+		$clean = filter_var( trim( $url ), FILTER_SANITIZE_URL );
+		return false !== $clean ? $clean : '';
+	}
+}
+
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( string $text ): string {
+		return htmlspecialchars( $text, ENT_QUOTES );
+	}
+}

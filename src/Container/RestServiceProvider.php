@@ -29,7 +29,9 @@ final class RestServiceProvider extends ServiceProvider {
 
 		$this->container->singleton(
 			DashboardController::class,
-			static fn (): DashboardController => new DashboardController()
+			static fn ( Container $c ): DashboardController => new DashboardController(
+				$c->get( ScanRunRepository::class )
+			)
 		);
 
 		$this->container->singleton(
