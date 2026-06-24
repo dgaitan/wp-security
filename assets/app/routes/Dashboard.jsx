@@ -6,6 +6,7 @@ import { startScan, getScanStatus } from '../api/scans';
 import { ScoreCard } from '../components/ScoreCard';
 import { Sparkline } from '../components/Sparkline';
 import { MODULES } from '../api/modules';
+import { Button } from '../components/Button';
 
 const POLL_INTERVAL_MS = 3000;
 const TERMINAL_STATUSES = new Set( [ 'complete', 'failed', 'unknown' ] );
@@ -95,22 +96,17 @@ export function Dashboard() {
 
 	return (
 		<div className="wpsec-dashboard wrap">
-			<h1 className="wp-heading-inline">{ __( 'WP Security', 'wp-security' ) }</h1>
-
-			{ /* Scan bar */ }
-			<div className="wpsec-dashboard__scan-bar">
-				<button
-					type="button"
-					className="button button-primary wpsec-dashboard__scan-btn"
-					onClick={ () => mutation.mutate() }
-					disabled={ isScanning }
-					aria-busy={ isScanning }
-				>
+			<header className="wpsec-page__header">
+				<h1 className="wp-heading-inline">{ __( 'WP Security', 'wp-security' ) }</h1>
+				<Button onClick={ () => mutation.mutate() } disabled={ isScanning } aria-busy={ isScanning }>
 					{ isScanning
 						? __( 'Scanning…', 'wp-security' )
 						: __( 'Run Full Scan', 'wp-security' ) }
-				</button>
+				</Button>
+			</header>
 
+			{ /* Scan bar */ }
+			<div className="wpsec-dashboard__scan-bar">
 				{ isScanning && scan.total > 0 && (
 					<span className="wpsec-dashboard__scan-status">
 						{ scan.progress } / { scan.total }{ ' ' }

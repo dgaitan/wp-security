@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { startScan, getScanStatus } from '../api/scans';
+import { Button } from './Button';
 
 const POLL_INTERVAL_MS = 3000;
 const DONE_RESET_MS    = 3000;
@@ -76,9 +77,7 @@ export function ModuleScanButton( { moduleId } ) {
 
 	return (
 		<div className="wpsec-scan-bar">
-			<button
-				type="button"
-				className="button button-primary wpsec-scan-bar__btn"
+			<Button
 				onClick={ handleClick }
 				disabled={ isScanning }
 				aria-busy={ isScanning ? 'true' : undefined }
@@ -92,7 +91,7 @@ export function ModuleScanButton( { moduleId } ) {
 						? __( '✓ Scan Complete', 'wp-security' )
 						: __( 'Run Scan', 'wp-security' )
 				}
-			</button>
+			</Button>
 
 			{ error && (
 				<p className="wpsec-scan-bar__error" role="alert">
