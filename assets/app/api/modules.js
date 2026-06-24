@@ -1,3 +1,15 @@
+import apiFetch from '@wordpress/api-fetch';
+
+/**
+ * Fetch the most-recent findings for a given module.
+ *
+ * @param {string} moduleId
+ * @returns {Promise<Array>}
+ */
+export function fetchModuleFindings( moduleId ) {
+	return apiFetch( { path: `/wp-security/v1/modules/${ moduleId }/findings` } );
+}
+
 /**
  * Static list of all audit modules — used to render navigation and placeholder
  * score cards before a scan has run.

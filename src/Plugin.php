@@ -15,6 +15,7 @@ use WPSecurity\Persistence\Migrator;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
+use WPSecurity\Modules\Server\ServerModule;
 use WPSecurity\Scanning\ScanManager;
 use WPSecurity\Scanning\Scheduler;
 
@@ -114,6 +115,12 @@ final class Plugin {
 
 	private function registerHooks(): void {
 		$container = $this->container;
+
+		// Register built-in audit modules.
+		add_filter(
+			'wp_security/modules',
+			static fn ( array $modules ): array => array_merge( $modules, [ new ServerModule() ] )
+		);
 
 		// Admin page — React SPA mount and asset enqueueing.
 		$container->get( AdminPage::class )->register();
