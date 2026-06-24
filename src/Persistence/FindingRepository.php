@@ -72,6 +72,32 @@ class FindingRepository {
 	}
 
 	/**
+	 * All findings from the most recent run that contains findings for the given module.
+	 * Returns an empty array when no scan has been run for that module yet.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function latestByModule( string $moduleId ): array {
+		$table = $this->table();
+
+		// phpcs:disable WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery
+		$rows = $this->wpdb->get_results(
+			$this->wpdb->prepare(
+				"SELECT * FROM `{$table}`
+				 WHERE module_id = %s
+				   AND run_id = (SELECT MAX(run_id) FROM `{$table}` WHERE module_id = %s)
+				 ORDER BY id ASC",
+				$moduleId,
+				$moduleId
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery
+
+		return array_map( [ $this, 'mapRow' ], is_array( $rows ) ? $rows : [] );
+	}
+
+	/**
 	 * The highest-severity open (WARN/FAIL) findings across all runs.
 	 *
 	 * @return array<int, array<string, mixed>>

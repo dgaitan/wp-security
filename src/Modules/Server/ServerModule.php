@@ -5,26 +5,18 @@ declare( strict_types=1 );
 namespace WPSecurity\Modules\Server;
 
 use WPSecurity\Contracts\Module;
+use WPSecurity\Modules\Server\Checks\DiskSpaceCheck;
+use WPSecurity\Modules\Server\Checks\HttpsCheck;
+use WPSecurity\Modules\Server\Checks\MemoryLimitCheck;
+use WPSecurity\Modules\Server\Checks\OpcacheCheck;
+use WPSecurity\Modules\Server\Checks\PhpExtensionsCheck;
+use WPSecurity\Modules\Server\Checks\PhpVersionCheck;
 
 /**
- * Server Health module.
+ * Server Health module — first complete vertical slice (Sprint 4).
  *
- * Confirms the hosting environment is current, capable, and correctly
- * configured.  This is the reference implementation of the Module contract
- * and the first complete vertical slice (Sprint 4).
- *
- * Checks:
- *   - PHP version (supported/secure — 8.1+ pass, EOL fail)
- *   - Memory limits (WP_MEMORY_LIMIT and memory_limit)
- *   - Required PHP extensions (curl, mbstring, gd/imagick, etc.)
- *   - OPcache enabled and sized
- *   - Persistent object cache present
- *   - HTTPS / TLS
- *   - Cron mode (DISABLE_WP_CRON + real system cron)
- *   - Disk space on install partition
- *   - Write permissions on wp-content / uploads
- *
- * TODO Sprint 4: implement all Check classes and register them below.
+ * Each check inspects one aspect of the hosting environment and returns a
+ * Finding.  Third-party code may add extra checks via the filter below.
  */
 class ServerModule implements Module {
 
@@ -44,8 +36,14 @@ class ServerModule implements Module {
 	 * @return iterable<\WPSecurity\Contracts\Check>
 	 */
 	public function checks(): iterable {
-		// Built-in Check instances are added in Sprint 4 (see the class docblock for the planned list).
-		$checks = [];
+		$checks = [
+			new PhpVersionCheck(),
+			new MemoryLimitCheck(),
+			new PhpExtensionsCheck(),
+			new OpcacheCheck(),
+			new DiskSpaceCheck(),
+			new HttpsCheck(),
+		];
 
 		/**
 		 * Allow third-party code to add checks to the Server module.

@@ -6,6 +6,7 @@ namespace WPSecurity\Container;
 
 use WPSecurity\Admin\ModuleRegistry;
 use WPSecurity\Contracts\Scanner;
+use WPSecurity\Persistence\FindingRepository;
 use WPSecurity\Persistence\ScanRunRepository;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
@@ -34,6 +35,7 @@ final class RestServiceProvider extends ServiceProvider {
 			ModulesController::class,
 			static fn ( Container $c ): ModulesController => new ModulesController(
 				$c->get( ModuleRegistry::class ),
+				$c->get( FindingRepository::class ),
 			)
 		);
 	}

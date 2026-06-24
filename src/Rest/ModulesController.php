@@ -8,6 +8,7 @@ use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
 use WPSecurity\Admin\ModuleRegistry;
+use WPSecurity\Persistence\FindingRepository;
 
 /**
  * Module and findings endpoints.
@@ -15,13 +16,13 @@ use WPSecurity\Admin\ModuleRegistry;
  *   GET /wp-security/v1/modules                       — all modules + latest score
  *   GET /wp-security/v1/modules/{id}/findings         — findings for one module's latest run
  *   POST /wp-security/v1/findings/external            — ingest browser-side findings (axe-core)
- *
- * The index() and findings() methods return static shapes for Sprint 3; Sprint 4
- * wires the real data by injecting ScanRunRepository and FindingRepository.
  */
 class ModulesController extends AbstractController {
 
-	public function __construct( private ModuleRegistry $registry ) {}
+	public function __construct(
+		private ModuleRegistry $registry,
+		private FindingRepository $findingRepository,
+	) {}
 
 	public function register(): void {
 		register_rest_route(
@@ -82,7 +83,7 @@ class ModulesController extends AbstractController {
 				sprintf( __( 'Module "%s" not found.', 'wp-security' ), esc_html( $id ) )
 			);
 		}
-		return $this->respond( [] );
+		return $this->respond( $this->findingRepository->latestByModule( $id ) );
 	}
 
 	public function ingestExternal( WP_REST_Request $request ): WP_REST_Response {

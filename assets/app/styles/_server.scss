@@ -1,0 +1,97 @@
+@use 'variables' as *;
+
+// ---------------------------------------------------------------------------
+// Findings list — shared by Server Health route (reusable for future modules).
+// ---------------------------------------------------------------------------
+
+.wpsec-findings-list {
+	margin: $wpsec-spacing-lg 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wpsec-finding {
+	background: $wpsec-color-white;
+	border: 1px solid $wpsec-color-border;
+	border-radius: $wpsec-radius-md;
+	padding: $wpsec-spacing-md;
+	margin-bottom: $wpsec-spacing-md;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.wpsec-finding__header {
+	display: flex;
+	align-items: center;
+	gap: $wpsec-spacing-sm;
+	margin-bottom: $wpsec-spacing-xs;
+}
+
+// Severity badge — colour driven by data-severity attribute to avoid inline styles.
+.wpsec-finding__badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px $wpsec-spacing-sm;
+	border-radius: $wpsec-radius-sm;
+	font-size: $wpsec-font-sm;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	flex-shrink: 0;
+
+	&[data-severity='critical'] { background: #fce8e8; color: #8b0000; }
+	&[data-severity='high']     { background: #fde8e8; color: #d63638; }
+	&[data-severity='medium']   { background: #fff3cd; color: #856404; }
+	&[data-severity='low']      { background: #e8f4fd; color: #0073aa; }
+	&[data-severity='info']     { background: $wpsec-color-bg; color: $wpsec-color-muted; }
+}
+
+.wpsec-finding__title {
+	font-weight: 600;
+	color: $wpsec-color-text;
+	font-size: $wpsec-font-base;
+}
+
+.wpsec-finding__description {
+	color: $wpsec-color-muted;
+	margin: $wpsec-spacing-xs 0 0;
+	line-height: 1.5;
+}
+
+.wpsec-finding__recommendation {
+	margin: $wpsec-spacing-xs 0 0;
+	font-size: $wpsec-font-sm;
+	color: $wpsec-color-primary;
+	line-height: 1.5;
+}
+
+// Status icon prefix shown before the badge.
+.wpsec-finding__status-icon {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	font-size: 10px;
+	font-weight: 700;
+
+	&[data-status='pass']    { background: #d7f0da; color: #00a32a; }
+	&[data-status='fail']    { background: #fde8e8; color: #d63638; }
+	&[data-status='warn']    { background: #fff3cd; color: #856404; }
+	&[data-status='info']    { background: $wpsec-color-bg; color: $wpsec-color-muted; }
+	&[data-status='skipped'] { background: $wpsec-color-bg; color: $wpsec-color-muted; }
+}
+
+// Empty / error states.
+.wpsec-server__empty {
+	color: $wpsec-color-muted;
+	font-style: italic;
+}
+
+.wpsec-server__error {
+	color: #d63638;
+}
