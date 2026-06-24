@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace WPSecurity\Container;
 
+use WPSecurity\Admin\AdminPage;
 use WPSecurity\Admin\ModuleRegistry;
 use WPSecurity\Contracts\Context;
 use WPSecurity\Scanning\ScanContext;
@@ -20,6 +21,11 @@ use WPSecurity\Scoring\ScoringService;
 final class CoreServiceProvider extends ServiceProvider {
 
 	public function register(): void {
+		$this->container->singleton(
+			AdminPage::class,
+			static fn(): AdminPage => new AdminPage()
+		);
+
 		$this->container->singleton(
 			ModuleRegistry::class,
 			static fn(): ModuleRegistry => new ModuleRegistry()

@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace WPSecurity;
 
+use WPSecurity\Admin\AdminPage;
 use WPSecurity\Container\Container;
 use WPSecurity\Container\CoreServiceProvider;
 use WPSecurity\Container\PersistenceServiceProvider;
@@ -11,6 +12,8 @@ use WPSecurity\Container\RestServiceProvider;
 use WPSecurity\Container\ScanningServiceProvider;
 use WPSecurity\Container\ServiceProvider;
 use WPSecurity\Persistence\Migrator;
+use WPSecurity\Rest\DashboardController;
+use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
 use WPSecurity\Scanning\ScanManager;
 use WPSecurity\Scanning\Scheduler;
@@ -95,7 +98,6 @@ final class Plugin {
 	// -------------------------------------------------------------------------
 
 	private function registerProviders(): void {
-		// Feature providers (Admin, Rest, Scanning) are appended here as their sprints land.
 		$providers = [
 			CoreServiceProvider::class,
 			PersistenceServiceProvider::class,
@@ -113,11 +115,16 @@ final class Plugin {
 	private function registerHooks(): void {
 		$container = $this->container;
 
+		// Admin page — React SPA mount and asset enqueueing.
+		$container->get( AdminPage::class )->register();
+
 		// REST routes.
 		add_action(
 			'rest_api_init',
 			static function () use ( $container ): void {
 				$container->get( ScansController::class )->register();
+				$container->get( DashboardController::class )->register();
+				$container->get( ModulesController::class )->register();
 			}
 		);
 

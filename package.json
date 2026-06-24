@@ -4,9 +4,9 @@
     "description": "React admin SPA for the WP Security plugin.",
     "private": true,
     "scripts": {
-        "build": "wp-scripts build",
-        "start": "wp-scripts start",
-        "lint:js": "wp-scripts lint-js",
+        "build": "wp-scripts build --source-path=assets/app",
+        "start": "wp-scripts start --source-path=assets/app",
+        "lint:js": "wp-scripts lint-js assets/app",
         "lint:style": "wp-scripts lint-style",
         "format": "wp-scripts format",
         "packages-update": "wp-scripts packages-update"
@@ -25,7 +25,6 @@
         "@wordpress/scripts": "*"
     },
     "wp-scripts": {
-        "webpack-src-dir": "assets/app",
         "output-path": "build"
     }
 }

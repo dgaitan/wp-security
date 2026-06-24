@@ -1,18 +1,39 @@
 /**
  * WP Security — React SPA entry point.
  *
- * Mounts the application into <div id="wp-security-root"> which is rendered
- * by Admin\AdminPage::renderPage().
+ * Mounts the application into <div id="wp-security-root"> rendered by
+ * Admin\AdminPage::renderPage(). React Router v6 handles all section routing
+ * client-side using a hash router (safe inside wp-admin's URL structure).
  *
- * Bootstrap data (REST root URL, nonce, capabilities) is provided by
- * wp_add_inline_script via Admin\AdminPage::enqueueAssets() and read from
- * window.wpSecurityData.
- *
- * TODO Sprint 3: implement full routing shell with React Router + react-query.
+ * Bootstrap data (REST root URL, nonce) is provided by wp_add_inline_script
+ * and read from window.wpSecurityData. @wordpress/api-fetch is configured with
+ * the nonce once on mount so all subsequent queries are authenticated.
  */
 
 import { createRoot } from '@wordpress/element';
+import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import apiFetch from '@wordpress/api-fetch';
+import { Nav } from './components/Nav';
+import { Dashboard } from './routes/Dashboard';
+import { Server } from './routes/Server';
+import { Headers } from './routes/Headers';
+import { Dns } from './routes/Dns';
+import { CoreIntegrity } from './routes/CoreIntegrity';
+import { PluginsThemes } from './routes/PluginsThemes';
+import { Database } from './routes/Database';
+import { Users } from './routes/Users';
+import { Performance } from './routes/Performance';
+import { Accessibility } from './routes/Accessibility';
+import { Seo } from './routes/Seo';
+
+// Configure api-fetch with the nonce from the inline bootstrap data.
+if ( window.wpSecurityData?.nonce ) {
+	apiFetch.use( apiFetch.createNonceMiddleware( window.wpSecurityData.nonce ) );
+}
+if ( window.wpSecurityData?.restRoot ) {
+	apiFetch.use( apiFetch.createRootURLMiddleware( window.wpSecurityData.restRoot ) );
+}
 
 const queryClient = new QueryClient( {
 	defaultOptions: {
@@ -23,19 +44,40 @@ const queryClient = new QueryClient( {
 	},
 } );
 
-function App() {
+function Layout() {
 	return (
 		<QueryClientProvider client={ queryClient }>
-			{ /* TODO Sprint 3: <RouterProvider router={router} /> */ }
-			<div style={ { padding: '2rem', fontFamily: 'sans-serif' } }>
-				<h1>WP Security</h1>
-				<p>Dashboard coming in Sprint 3.</p>
+			<div style={ { display: 'flex', minHeight: '600px' } }>
+				<Nav />
+				<main style={ { flex: 1, overflow: 'auto' } }>
+					<Outlet />
+				</main>
 			</div>
 		</QueryClientProvider>
 	);
 }
 
+const router = createHashRouter( [
+	{
+		path: '/',
+		element: <Layout />,
+		children: [
+			{ index: true, element: <Dashboard /> },
+			{ path: 'server', element: <Server /> },
+			{ path: 'headers', element: <Headers /> },
+			{ path: 'dns', element: <Dns /> },
+			{ path: 'core-integrity', element: <CoreIntegrity /> },
+			{ path: 'plugins-themes', element: <PluginsThemes /> },
+			{ path: 'database', element: <Database /> },
+			{ path: 'users', element: <Users /> },
+			{ path: 'performance', element: <Performance /> },
+			{ path: 'accessibility', element: <Accessibility /> },
+			{ path: 'seo', element: <Seo /> },
+		],
+	},
+] );
+
 const root = document.getElementById( 'wp-security-root' );
 if ( root ) {
-	createRoot( root ).render( <App /> );
+	createRoot( root ).render( <RouterProvider router={ router } /> );
 }
