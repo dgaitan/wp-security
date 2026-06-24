@@ -4,3 +4,14 @@
 .wpsec-section {
 	padding: $wpsec-spacing-lg;
 }
+
+.wpsec-findings__empty {
+	color: $wpsec-color-muted;
+	font-style: italic;
+	margin-top: $wpsec-spacing-md;
+}
+
+.wpsec-findings__error {
+	color: #d63638;
+	margin-top: $wpsec-spacing-md;
+}

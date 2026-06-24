@@ -15,6 +15,9 @@ use WPSecurity\Persistence\Migrator;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\ScansController;
+use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
+use WPSecurity\Modules\Dns\DnsModule;
+use WPSecurity\Modules\Headers\HeadersModule;
 use WPSecurity\Modules\Server\ServerModule;
 use WPSecurity\Scanning\ScanManager;
 use WPSecurity\Scanning\Scheduler;
@@ -119,7 +122,15 @@ final class Plugin {
 		// Register built-in audit modules.
 		add_filter(
 			'wp_security/modules',
-			static fn ( array $modules ): array => array_merge( $modules, [ new ServerModule() ] )
+			static fn ( array $modules ): array => array_merge(
+				$modules,
+				[
+					new ServerModule(),
+					new HeadersModule(),
+					new DnsModule(),
+					new CoreIntegrityModule(),
+				]
+			)
 		);
 
 		// Admin page — React SPA mount and asset enqueueing.

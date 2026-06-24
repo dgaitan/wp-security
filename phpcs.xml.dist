@@ -89,6 +89,8 @@
     </rule>
     <rule ref="WordPress.WP.AlternativeFunctions">
         <exclude-pattern>tests/stubs/*</exclude-pattern>
+        <!-- Unit tests run without WordPress so WP_Filesystem / wp_delete_file() are unavailable. -->
+        <exclude-pattern>tests/Unit/*</exclude-pattern>
     </rule>
 
     <!-- PHP version targeting. -->
