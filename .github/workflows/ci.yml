@@ -58,14 +58,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Install npm dependencies
+        run: npm ci
 
       - name: Build assets
-        run: yarn build
+        run: npm run build
 
       - name: Lint JavaScript
-        run: yarn lint:js
+        run: npm run lint:js
