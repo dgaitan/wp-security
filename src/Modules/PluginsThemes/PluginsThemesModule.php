@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\PluginsThemes;
 
 use WPSecurity\Contracts\Module;
 use WPSecurity\Modules\PluginsThemes\Checks\InactivePluginsCheck;
+use WPSecurity\Modules\PluginsThemes\Checks\OutdatedJsLibraryCheck;
 use WPSecurity\Modules\PluginsThemes\Checks\PluginUpdatesCheck;
 
 /**
@@ -32,6 +33,7 @@ class PluginsThemesModule implements Module {
 		$checks = [
 			new PluginUpdatesCheck(),
 			new InactivePluginsCheck(),
+			new OutdatedJsLibraryCheck(),
 		];
 
 		/**

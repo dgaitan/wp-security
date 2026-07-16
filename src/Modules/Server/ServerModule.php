@@ -7,10 +7,12 @@ namespace WPSecurity\Modules\Server;
 use WPSecurity\Contracts\Module;
 use WPSecurity\Modules\Server\Checks\DiskSpaceCheck;
 use WPSecurity\Modules\Server\Checks\HttpsCheck;
+use WPSecurity\Modules\Server\Checks\HttpsRedirectCheck;
 use WPSecurity\Modules\Server\Checks\MemoryLimitCheck;
 use WPSecurity\Modules\Server\Checks\OpcacheCheck;
 use WPSecurity\Modules\Server\Checks\PhpExtensionsCheck;
 use WPSecurity\Modules\Server\Checks\PhpVersionCheck;
+use WPSecurity\Modules\Server\Checks\TlsCertificateExpiryCheck;
 
 /**
  * Server Health module — first complete vertical slice (Sprint 4).
@@ -43,6 +45,8 @@ class ServerModule implements Module {
 			new OpcacheCheck(),
 			new DiskSpaceCheck(),
 			new HttpsCheck(),
+			new HttpsRedirectCheck(),
+			new TlsCertificateExpiryCheck(),
 		];
 
 		/**
