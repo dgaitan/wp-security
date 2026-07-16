@@ -21,40 +21,27 @@ use WPSecurity\Domain\Status;
  * module, even though it reads the same page_asset_tags context key as
  * SriCheck.
  *
+ * The reference list of known libraries lives in Data/known-js-libraries.json
+ * (not in this class) so it can be reviewed/extended as a data-maintenance
+ * task instead of a code change. Each entry:
+ *   library          — display name shown in the Finding.
+ *   name_pattern     — regex; matches when the library appears in a script URL at all.
+ *   version_pattern  — regex with one capture group for a semver-like version.
+ *   min_safe_version — versions below this (via version_compare) are flagged.
+ *   reference        — the CVE/advisory backing the min_safe_version threshold.
+ * Order matters: entries are matched top-to-bottom and the first match wins,
+ * so more specific patterns (e.g. "jQuery UI") must precede broader ones
+ * whose name_pattern would also match them (e.g. "jQuery", since a
+ * "jquery-ui-1.13.2.min.js" URL also contains the substring "jquery").
+ *
  * This is a best-effort heuristic: minified or fingerprinted bundles with no
  * version string in the URL cannot be matched and are not treated as
  * failures, to avoid false positives.
  */
 class OutdatedJsLibraryCheck implements Check {
 
-	/**
-	 * name_pattern detects the library is loaded at all; version_pattern
-	 * additionally requires a semver-like version to appear right after the
-	 * library name. Kept as two separate patterns (rather than one pattern
-	 * with an optional version group) because a required-but-optional
-	 * capture group would still force the whole match to fail whenever the
-	 * filename has no version segment (e.g. a custom/minified build name),
-	 * which would make the "recognized library, unparseable version"
-	 * fallback path unreachable.
-	 *
-	 * @var array<int, array{library: string, name_pattern: string, version_pattern: string, min_safe_version: string, reference: string}>
-	 */
-	private const KNOWN_LIBRARIES = [
-		[
-			'library'          => 'jQuery',
-			'name_pattern'     => '/jquery/i',
-			'version_pattern'  => '/jquery[.\-@]?v?(\d+\.\d+\.\d+)/i',
-			'min_safe_version' => '3.5.0',
-			'reference'        => 'CVE-2020-11022',
-		],
-		[
-			'library'          => 'Vue',
-			'name_pattern'     => '/\bvue\b/i',
-			'version_pattern'  => '/vue[.\-@]?v?(\d+\.\d+\.\d+)/i',
-			'min_safe_version' => '3.0.0',
-			'reference'        => 'CVE-2024-6783',
-		],
-	];
+	/** @var array<int, array{library: string, name_pattern: string, version_pattern: string, min_safe_version: string, reference: string}>|null */
+	private static ?array $knownLibraries = null;
 
 	public function id(): string {
 		return 'plugins_themes.outdated_js_libraries';
@@ -75,6 +62,16 @@ class OutdatedJsLibraryCheck implements Check {
 			);
 		}
 
+		$knownLibraries = $this->loadKnownLibraries();
+
+		if ( null === $knownLibraries ) {
+			return Finding::skipped(
+				$this->id(),
+				$this->label(),
+				'Could not load the known-JavaScript-library reference data.'
+			);
+		}
+
 		$scriptTags     = array_filter(
 			$tags,
 			static fn ( array $tag ): bool => 'script' === ( $tag['type'] ?? '' )
@@ -85,7 +82,7 @@ class OutdatedJsLibraryCheck implements Check {
 		foreach ( $scriptTags as $tag ) {
 			$url = (string) ( $tag['url'] ?? '' );
 
-			foreach ( self::KNOWN_LIBRARIES as $library ) {
+			foreach ( $knownLibraries as $library ) {
 				if ( 1 !== preg_match( $library['name_pattern'], $url ) ) {
 					continue;
 				}
@@ -157,5 +154,38 @@ class OutdatedJsLibraryCheck implements Check {
 			$this->label(),
 			__( 'No known-vulnerable JavaScript libraries were detected.', 'wp-security' )
 		);
+	}
+
+	/**
+	 * Loads and caches the known-library reference data from
+	 * Data/known-js-libraries.json via wp_json_file_decode() — the same
+	 * core WordPress function theme.json/block.json use to load bundled
+	 * JSON, which keeps this out of the raw-filesystem-call sniffs that
+	 * apply to direct file_get_contents()/fopen() usage in plugin code.
+	 *
+	 * Cached on the class (not the instance) since PluginsThemesModule
+	 * creates a fresh Check instance per scan, but the underlying file
+	 * never changes within a single PHP request.
+	 *
+	 * @return array<int, array{library: string, name_pattern: string, version_pattern: string, min_safe_version: string, reference: string}>|null
+	 */
+	private function loadKnownLibraries(): ?array {
+		if ( null !== self::$knownLibraries ) {
+			return self::$knownLibraries;
+		}
+
+		$decoded = wp_json_file_decode(
+			__DIR__ . '/../Data/known-js-libraries.json',
+			[ 'associative' => true ]
+		);
+
+		if ( ! is_array( $decoded ) ) {
+			return null;
+		}
+
+		/** @var array<int, array{library: string, name_pattern: string, version_pattern: string, min_safe_version: string, reference: string}> $decoded */
+		self::$knownLibraries = $decoded;
+
+		return self::$knownLibraries;
 	}
 }

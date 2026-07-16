@@ -1,0 +1,65 @@
+[
+	{
+		"library": "jQuery UI",
+		"name_pattern": "/jquery[.\\-]ui/i",
+		"version_pattern": "/jquery[.\\-]ui[.\\-](\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "1.13.0",
+		"reference": "CVE-2021-41184"
+	},
+	{
+		"library": "jQuery",
+		"name_pattern": "/jquery/i",
+		"version_pattern": "/jquery[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "3.5.0",
+		"reference": "CVE-2020-11022"
+	},
+	{
+		"library": "Vue",
+		"name_pattern": "/\\bvue\\b/i",
+		"version_pattern": "/vue[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "3.0.0",
+		"reference": "CVE-2024-6783"
+	},
+	{
+		"library": "Lodash",
+		"name_pattern": "/lodash/i",
+		"version_pattern": "/lodash[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "4.17.21",
+		"reference": "CVE-2021-23337"
+	},
+	{
+		"library": "Moment.js",
+		"name_pattern": "/moment/i",
+		"version_pattern": "/moment[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "2.29.4",
+		"reference": "CVE-2022-31129"
+	},
+	{
+		"library": "Handlebars",
+		"name_pattern": "/handlebars/i",
+		"version_pattern": "/handlebars[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "4.7.7",
+		"reference": "CVE-2021-23383"
+	},
+	{
+		"library": "Underscore.js",
+		"name_pattern": "/underscore/i",
+		"version_pattern": "/underscore[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "1.12.1",
+		"reference": "CVE-2021-23358"
+	},
+	{
+		"library": "Bootstrap",
+		"name_pattern": "/bootstrap/i",
+		"version_pattern": "/bootstrap[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "4.3.1",
+		"reference": "CVE-2019-8331"
+	},
+	{
+		"library": "AngularJS",
+		"name_pattern": "/angular[.\\-]/i",
+		"version_pattern": "/angular[.\\-@]?v?(\\d+\\.\\d+\\.\\d+)/i",
+		"min_safe_version": "1.8.0",
+		"reference": "CVE-2020-7676"
+	}
+]

@@ -24,6 +24,12 @@
  *     Then the Finding status is "pass"
  *     And the evidence lists the library under version_unknown
  *
+ *   Scenario: An outdated jQuery UI URL is attributed to jQuery UI, not jQuery
+ *     Given a mocked Context with a page_asset_tags script URL matching jquery-ui-1.11.4.min.js
+ *     When OutdatedJsLibraryCheck::run() is called
+ *     Then the Finding status is "warn"
+ *     And the evidence names "jQuery UI" (not "jQuery") as the outdated library
+ *
  *   Scenario: page_asset_tags null returns SKIPPED
  *     Given a mocked Context where get('page_asset_tags') returns null
  *     When OutdatedJsLibraryCheck::run() is called
@@ -94,6 +100,26 @@ final class OutdatedJsLibraryCheckTest extends TestCase {
 		$this->assertSame( Severity::HIGH, $finding->severity );
 		$this->assertSame( 'jQuery', $finding->evidence['outdated'][0]['library'] );
 		$this->assertSame( 'CVE-2020-11022', $finding->evidence['outdated'][0]['reference'] );
+	}
+
+	public function test_outdated_jquery_ui_is_attributed_to_jquery_ui_not_jquery(): void {
+		$context = new MockContext(
+			values: [
+				'page_asset_tags' => [
+					[
+						'type'        => 'script',
+						'url'         => 'https://example.test/wp-includes/js/jquery/ui/jquery-ui-1.11.4.min.js',
+						'integrity'   => null,
+						'crossorigin' => null,
+						'external'    => false,
+					],
+				],
+			]
+		);
+		$finding = $this->check->run( $context );
+
+		$this->assertSame( Status::WARN, $finding->status );
+		$this->assertSame( 'jQuery UI', $finding->evidence['outdated'][0]['library'] );
 	}
 
 	public function test_unparseable_version_does_not_fail(): void {

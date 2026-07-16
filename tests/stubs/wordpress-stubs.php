@@ -476,6 +476,39 @@ if ( ! function_exists( 'wp_remote_retrieve_headers' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_json_file_decode' ) ) {
+	/**
+	 * Mirrors WP core's wp_json_file_decode() (available since WP 5.9),
+	 * used by plugin code to load bundled reference-data JSON files without
+	 * calling file_get_contents()/json_decode() directly.
+	 *
+	 * @param array<string, mixed> $options
+	 * @return mixed
+	 */
+	function wp_json_file_decode( string $filename, array $options = [] ) {
+		$real_path = realpath( $filename );
+
+		if ( false === $real_path ) {
+			return null;
+		}
+
+		$contents = file_get_contents( $real_path );
+
+		if ( false === $contents ) {
+			return null;
+		}
+
+		$associative = $options['associative'] ?? false;
+		$decoded     = json_decode( $contents, $associative );
+
+		if ( JSON_ERROR_NONE !== json_last_error() ) {
+			return null;
+		}
+
+		return $decoded;
+	}
+}
+
 if ( ! function_exists( 'register_rest_route' ) ) {
 	/**
 	 * Recordable stub for register_rest_route.
