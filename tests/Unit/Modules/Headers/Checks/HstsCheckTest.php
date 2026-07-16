@@ -17,6 +17,18 @@
  *     Then the Finding status is "fail"
  *     And the Finding severity is "high"
  *
+ *   Scenario: HSTS max-age below the 6-month threshold returns WARN with MEDIUM severity
+ *     Given a mocked Context with response_headers where strict-transport-security has max-age=3600
+ *     When HstsCheck::run() is called
+ *     Then the Finding status is "warn"
+ *     And the Finding severity is "medium"
+ *
+ *   Scenario: HSTS max-age=0 returns WARN with HIGH severity
+ *     Given a mocked Context with response_headers where strict-transport-security has max-age=0
+ *     When HstsCheck::run() is called
+ *     Then the Finding status is "warn"
+ *     And the Finding severity is "high"
+ *
  *   Scenario: Response headers null returns SKIPPED
  *     Given a mocked Context where get('response_headers') returns null
  *     When HstsCheck::run() is called
@@ -94,5 +106,34 @@ final class HstsCheckTest extends TestCase {
 		$finding = $this->check->run( $context );
 
 		$this->assertSame( Status::FAIL, $finding->status );
+	}
+
+	public function test_max_age_below_threshold_returns_warn_medium(): void {
+		$context = new MockContext(
+			values: [
+				'response_headers' => [
+					'strict-transport-security' => 'max-age=3600',
+				],
+			]
+		);
+		$finding = $this->check->run( $context );
+
+		$this->assertSame( Status::WARN, $finding->status );
+		$this->assertSame( Severity::MEDIUM, $finding->severity );
+		$this->assertSame( 3600, $finding->evidence['max_age'] );
+	}
+
+	public function test_max_age_zero_returns_warn_high(): void {
+		$context = new MockContext(
+			values: [
+				'response_headers' => [
+					'strict-transport-security' => 'max-age=0',
+				],
+			]
+		);
+		$finding = $this->check->run( $context );
+
+		$this->assertSame( Status::WARN, $finding->status );
+		$this->assertSame( Severity::HIGH, $finding->severity );
 	}
 }

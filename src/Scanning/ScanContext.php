@@ -76,6 +76,10 @@ class ScanContext implements Context {
 	 *   'homepage_html'           → string|null — raw HTML body of homeUrl (loopback GET)
 	 *   'robots_txt_status'       → int|null — HTTP status code for GET {homeUrl}/robots.txt
 	 *   'sitemap_reachable'       → bool|null — true when /sitemap.xml returns 2xx/3xx
+	 *   'session_cookies'         → array<int,array{name:string,secure:bool,httponly:bool,samesite:?string}>|null — parsed Set-Cookie headers from the loopback response
+	 *   'page_asset_tags'         → array<int,array{type:string,url:string,integrity:?string,crossorigin:?string,external:bool}>|null — <script src>/<link rel="stylesheet" href> tags parsed from homepage_html
+	 *   'https_redirect_chain'    → array<int,array{url:string,status:int,scheme:string}>|null — hop-by-hop trace of an explicit http:// request to the home host, redirects followed manually (redirection=>0)
+	 *   'tls_certificate'         → array{valid_from:int,valid_to:int,days_until_expiry:int,subject_cn:string,issuer_cn:string,self_signed:bool}|null — peer certificate parsed from a raw TLS handshake to the home host
 	 *
 	 * @return mixed
 	 */
@@ -116,6 +120,10 @@ class ScanContext implements Context {
 			'homepage_html'           => $this->resolveHomepageHtml(),
 			'robots_txt_status'       => $this->resolveRobotsTxtStatus(),
 			'sitemap_reachable'       => $this->resolveSitemapReachable(),
+			'session_cookies'         => $this->resolveSessionCookies(),
+			'page_asset_tags'         => $this->resolvePageAssetTags(),
+			'https_redirect_chain'    => $this->resolveHttpsRedirectChain(),
+			'tls_certificate'         => $this->resolveTlsCertificate(),
 			default                   => null,
 		};
 
@@ -389,5 +397,285 @@ class ScanContext implements Context {
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		return $code >= 200 && $code < 400;
+	}
+
+	/**
+	 * Parses Set-Cookie headers from the shared loopback response.
+	 *
+	 * Reuses the existing homepage request — no additional HTTP call.
+	 *
+	 * @return array<int, array{name: string, secure: bool, httponly: bool, samesite: ?string}>|null
+	 */
+	private function resolveSessionCookies(): ?array {
+		$response = $this->sharedLoopback();
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 400 ) {
+			return null;
+		}
+
+		$rawHeaders = wp_remote_retrieve_headers( $response );
+
+		// Real WordPress may return WpOrg\Requests\Response\Headers, whose
+		// default iteration/offsetGet comma-flattens repeated headers. Since
+		// a Set-Cookie's own Expires attribute contains commas, that would
+		// corrupt multi-cookie responses, so prefer the un-flattened raw
+		// values when available. The test stub always returns a plain array.
+		if ( is_object( $rawHeaders ) && method_exists( $rawHeaders, 'getValues' ) ) {
+			/** @var array<int, string> $cookieLines */
+			$cookieLines = $rawHeaders->getValues( 'set-cookie' ) ?? [];
+		} else {
+			$cookieLines = [];
+			foreach ( (array) $rawHeaders as $name => $value ) {
+				if ( 'set-cookie' === strtolower( (string) $name ) ) {
+					$cookieLines = array_merge( $cookieLines, (array) $value );
+				}
+			}
+		}
+
+		$cookies = [];
+		foreach ( $cookieLines as $line ) {
+			$cookie = $this->parseCookieLine( (string) $line );
+			if ( null !== $cookie ) {
+				$cookies[] = $cookie;
+			}
+		}
+
+		return $cookies;
+	}
+
+	/** @return array{name: string, secure: bool, httponly: bool, samesite: ?string}|null */
+	private function parseCookieLine( string $line ): ?array {
+		$parts     = array_map( 'trim', explode( ';', $line ) );
+		$nameValue = (string) array_shift( $parts );
+
+		if ( ! str_contains( $nameValue, '=' ) ) {
+			return null;
+		}
+
+		[ $name ] = explode( '=', $nameValue, 2 );
+		$name     = trim( $name );
+
+		if ( '' === $name ) {
+			return null;
+		}
+
+		$secure   = false;
+		$httponly = false;
+		$sameSite = null;
+
+		foreach ( $parts as $attribute ) {
+			if ( '' === $attribute ) {
+				continue;
+			}
+
+			if ( str_contains( $attribute, '=' ) ) {
+				[ $attrName, $attrValue ] = array_map( 'trim', explode( '=', $attribute, 2 ) );
+			} else {
+				$attrName  = trim( $attribute );
+				$attrValue = null;
+			}
+
+			switch ( strtolower( $attrName ) ) {
+				case 'secure':
+					$secure = true;
+					break;
+				case 'httponly':
+					$httponly = true;
+					break;
+				case 'samesite':
+					$sameSite = $attrValue;
+					break;
+			}
+		}
+
+		return [
+			'name'     => $name,
+			'secure'   => $secure,
+			'httponly' => $httponly,
+			'samesite' => $sameSite,
+		];
+	}
+
+	/**
+	 * Parses <script src> / <link rel="stylesheet" href> tags out of the
+	 * homepage HTML, flagging integrity/crossorigin attributes and whether
+	 * the asset is cross-origin relative to the home URL.
+	 *
+	 * Reuses the already-fetched homepage_html — no additional HTTP call.
+	 * This single key backs two independent Checks (SRI, outdated JS
+	 * libraries) in two different modules: one HTML parse, two findings.
+	 *
+	 * @return array<int, array{type: string, url: string, integrity: ?string, crossorigin: ?string, external: bool}>|null
+	 */
+	private function resolvePageAssetTags(): ?array {
+		$html = $this->resolveHomepageHtml();
+
+		if ( null === $html ) {
+			return null;
+		}
+
+		$homeHost = (string) wp_parse_url( $this->homeUrl(), PHP_URL_HOST );
+		$tags     = [];
+
+		if ( preg_match_all( '/<script\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>/i', $html, $scriptMatches, PREG_SET_ORDER ) ) {
+			foreach ( $scriptMatches as $match ) {
+				$tags[] = $this->buildAssetTag( 'script', $match[0], $match[1], $homeHost );
+			}
+		}
+
+		if ( preg_match_all( '/<link\b[^>]*>/i', $html, $linkMatches ) ) {
+			foreach ( $linkMatches[0] as $tag ) {
+				if ( 1 !== preg_match( '/\brel=["\']stylesheet["\']/i', $tag ) ) {
+					continue;
+				}
+				if ( 1 !== preg_match( '/\bhref=["\']([^"\']+)["\']/i', $tag, $hrefMatch ) ) {
+					continue;
+				}
+				$tags[] = $this->buildAssetTag( 'style', $tag, $hrefMatch[1], $homeHost );
+			}
+		}
+
+		return $tags;
+	}
+
+	/** @return array{type: string, url: string, integrity: ?string, crossorigin: ?string, external: bool} */
+	private function buildAssetTag( string $type, string $tag, string $url, string $homeHost ): array {
+		preg_match( '/\bintegrity=["\']([^"\']+)["\']/i', $tag, $integrityMatch );
+		preg_match( '/\bcrossorigin=["\']?([^"\'>\s]*)/i', $tag, $crossoriginMatch );
+
+		return [
+			'type'        => $type,
+			'url'         => $url,
+			'integrity'   => '' !== ( $integrityMatch[1] ?? '' ) ? $integrityMatch[1] : null,
+			'crossorigin' => '' !== ( $crossoriginMatch[1] ?? '' ) ? $crossoriginMatch[1] : null,
+			'external'    => $this->isExternalAssetUrl( $url, $homeHost ),
+		];
+	}
+
+	private function isExternalAssetUrl( string $url, string $homeHost ): bool {
+		if ( str_starts_with( $url, '//' ) ) {
+			$url = 'https:' . $url;
+		}
+
+		$assetHost = (string) wp_parse_url( $url, PHP_URL_HOST );
+
+		// Root-relative / relative URLs have no host component → same-origin.
+		if ( '' === $assetHost ) {
+			return false;
+		}
+
+		return '' !== $homeHost && strtolower( $assetHost ) !== strtolower( $homeHost );
+	}
+
+	/**
+	 * Traces an explicit http:// request to the home host, following
+	 * redirects manually (redirection => 0) so intermediate hops are
+	 * observable. This is a new, separate request from sharedLoopback(),
+	 * which always requests the already-https:// home URL and hides
+	 * intermediate hops by following up to 5 redirects internally.
+	 *
+	 * @return array<int, array{url: string, status: int, scheme: string}>|null
+	 */
+	private function resolveHttpsRedirectChain(): ?array {
+		$host = (string) wp_parse_url( $this->homeUrl(), PHP_URL_HOST );
+
+		if ( '' === $host ) {
+			return null;
+		}
+
+		$url   = 'http://' . $host . '/';
+		$chain = [];
+
+		for ( $hop = 0; $hop < 5; $hop++ ) {
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'     => 10,
+					'sslverify'   => false,
+					'redirection' => 0,
+				]
+			);
+
+			if ( is_wp_error( $response ) ) {
+				// Connection failure is itself a meaningful, non-null result
+				// (e.g. a host that doesn't listen on port 80 at all) — not
+				// the same as "couldn't determine anything".
+				$chain[] = [
+					'url'    => $url,
+					'status' => 0,
+					'scheme' => (string) wp_parse_url( $url, PHP_URL_SCHEME ),
+				];
+				break;
+			}
+
+			$code    = (int) wp_remote_retrieve_response_code( $response );
+			$chain[] = [
+				'url'    => $url,
+				'status' => $code,
+				'scheme' => (string) wp_parse_url( $url, PHP_URL_SCHEME ),
+			];
+
+			if ( $code < 300 || $code >= 400 ) {
+				break;
+			}
+
+			$headers  = (array) wp_remote_retrieve_headers( $response );
+			$location = $headers['location'] ?? null;
+
+			if ( null === $location || '' === $location ) {
+				break;
+			}
+
+			$url = $this->resolveRedirectUrl( (string) $location, $url );
+		}
+
+		return $chain;
+	}
+
+	private function resolveRedirectUrl( string $location, string $previousUrl ): string {
+		if ( str_starts_with( $location, 'http://' ) || str_starts_with( $location, 'https://' ) ) {
+			return $location;
+		}
+
+		$scheme = (string) wp_parse_url( $previousUrl, PHP_URL_SCHEME );
+		$host   = (string) wp_parse_url( $previousUrl, PHP_URL_HOST );
+
+		if ( str_starts_with( $location, '//' ) ) {
+			return $scheme . ':' . $location;
+		}
+
+		if ( str_starts_with( $location, '/' ) ) {
+			return $scheme . '://' . $host . $location;
+		}
+
+		return $scheme . '://' . $host . '/' . ltrim( $location, '/' );
+	}
+
+	/**
+	 * Delegates to TlsCertificateInspector for a raw TLS handshake — cannot
+	 * reuse sharedLoopback(), which forces sslverify=>false and never
+	 * exposes the peer certificate via wp_remote_get()/cURL regardless.
+	 *
+	 * @return array{valid_from: int, valid_to: int, days_until_expiry: int, subject_cn: string, issuer_cn: string, self_signed: bool}|null
+	 */
+	private function resolveTlsCertificate(): ?array {
+		$url = $this->homeUrl();
+
+		if ( ! str_starts_with( $url, 'https://' ) ) {
+			return null;
+		}
+
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+
+		if ( '' === $host ) {
+			return null;
+		}
+
+		return ( new TlsCertificateInspector() )->inspect( $host );
 	}
 }

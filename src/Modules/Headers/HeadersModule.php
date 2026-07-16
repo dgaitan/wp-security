@@ -5,8 +5,10 @@ declare( strict_types=1 );
 namespace WPSecurity\Modules\Headers;
 
 use WPSecurity\Contracts\Module;
+use WPSecurity\Modules\Headers\Checks\CookieSecurityCheck;
 use WPSecurity\Modules\Headers\Checks\HstsCheck;
 use WPSecurity\Modules\Headers\Checks\SecurityHeadersCheck;
+use WPSecurity\Modules\Headers\Checks\SriCheck;
 
 /**
  * Security Headers module — audits HTTP response headers via a loopback request.
@@ -32,6 +34,8 @@ class HeadersModule implements Module {
 		$checks = [
 			new HstsCheck(),
 			new SecurityHeadersCheck(),
+			new CookieSecurityCheck(),
+			new SriCheck(),
 		];
 
 		/**

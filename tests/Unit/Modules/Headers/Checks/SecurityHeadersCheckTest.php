@@ -39,6 +39,14 @@
  *     When SecurityHeadersCheck::run() is called
  *     Then the Finding evidence contains 'missing' with 'content-security-policy'
  *
+ *   Scenario: Weak CSP with all other headers present returns WARN with MEDIUM severity
+ *     Given a mocked Context where content-security-policy is "default-src *; script-src 'unsafe-inline'" and all other headers are present
+ *     When SecurityHeadersCheck::run() is called
+ *     Then the Finding status is "warn"
+ *     And the Finding severity is "medium"
+ *     And the evidence csp_weaknesses contains 'unsafe-inline' and 'wildcard-default-src'
+ *     And the evidence missing is empty
+ *
  * @package WPSecurity\Tests
  */
 
@@ -132,5 +140,18 @@ final class SecurityHeadersCheckTest extends TestCase {
 
 		$this->assertArrayHasKey( 'missing', $finding->evidence );
 		$this->assertArrayHasKey( 'content-security-policy', $finding->evidence['missing'] );
+	}
+
+	public function test_weak_csp_with_headers_present_returns_warn_medium(): void {
+		$headers                            = self::ALL_HEADERS;
+		$headers['content-security-policy'] = "default-src *; script-src 'unsafe-inline'";
+		$context                            = new MockContext( values: [ 'response_headers' => $headers ] );
+		$finding                            = $this->check->run( $context );
+
+		$this->assertSame( Status::WARN, $finding->status );
+		$this->assertSame( Severity::MEDIUM, $finding->severity );
+		$this->assertSame( [], $finding->evidence['missing'] );
+		$this->assertContains( 'unsafe-inline', $finding->evidence['csp_weaknesses'] );
+		$this->assertContains( 'wildcard-default-src', $finding->evidence['csp_weaknesses'] );
 	}
 }
