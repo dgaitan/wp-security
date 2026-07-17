@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -64,7 +65,7 @@ class HttpsRedirectCheck implements Check {
 				title:          $this->label(),
 				description:    __( 'The site does not fully redirect HTTP traffic to HTTPS.', 'wp-security' ),
 				recommendation: __( 'Configure your web server or CDN to redirect all HTTP requests to HTTPS with a 301 response.', 'wp-security' ),
-				evidence:       [ 'chain' => $chain ],
+				evidence:       ( new Evidence() )->add( 'chain', $chain ),
 			);
 		}
 
@@ -83,7 +84,7 @@ class HttpsRedirectCheck implements Check {
 				title:          $this->label(),
 				description:    __( 'The redirect chain to HTTPS passes through more than one unencrypted hop.', 'wp-security' ),
 				recommendation: __( 'Ensure the first redirect from HTTP goes directly to HTTPS, avoiding intermediate plain-HTTP hops.', 'wp-security' ),
-				evidence:       [ 'chain' => $chain ],
+				evidence:       ( new Evidence() )->add( 'chain', $chain ),
 			);
 		}
 

@@ -100,6 +100,6 @@ final class TtfbCheckTest extends TestCase {
 		$ctx     = new MockContext( values: [ 'ttfb_ms' => 900.0 ] );
 		$finding = $this->check->run( $ctx );
 
-		$this->assertSame( 900.0, $finding->evidence['ttfb_ms'] );
+		$this->assertSame( 900.0, $finding->evidence->get( 'ttfb_ms' ) );
 	}
 }

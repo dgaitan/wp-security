@@ -68,7 +68,7 @@ class PluginUpdatesCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertSame( [ 'plugin-a/plugin-a.php' ], $finding->evidence['plugins_needing_update'] );
+		$this->assertSame( [ 'plugin-a/plugin-a.php' ], $finding->evidence->get( 'plugins_needing_update' ) );
 	}
 
 	public function test_multiple_plugins_need_updates_returns_warn_high(): void {
@@ -78,7 +78,7 @@ class PluginUpdatesCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertCount( 2, $finding->evidence['plugins_needing_update'] );
+		$this->assertCount( 2, $finding->evidence->get( 'plugins_needing_update' ) );
 	}
 
 	public function test_check_id_matches_finding(): void {

@@ -104,7 +104,7 @@ final class DiskSpaceCheckTest extends TestCase {
 		$context = new MockContext( values: [ 'disk_free_bytes' => 300 * self::MB ] );
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'free_mb', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'free_mb' ) );
 	}
 
 	public function test_boundary_at_500mb_is_pass(): void {

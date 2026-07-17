@@ -24,6 +24,7 @@ declare( strict_types=1 );
 namespace WPSecurity\Tests\Unit\Domain;
 
 use PHPUnit\Framework\TestCase;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -38,7 +39,7 @@ final class FindingFromArrayTest extends TestCase {
 			'Outdated PHP',
 			'PHP 7.4 is end-of-life.',
 			'Upgrade to PHP 8.1+.',
-			[ 'current' => '7.4.33' ],
+			( new Evidence() )->add( 'current', '7.4.33' ),
 			'https://example.test/docs'
 		);
 
@@ -48,7 +49,7 @@ final class FindingFromArrayTest extends TestCase {
 		$this->assertSame( $original->status, $rebuilt->status );
 		$this->assertSame( $original->severity, $rebuilt->severity );
 		$this->assertSame( $original->title, $rebuilt->title );
-		$this->assertSame( $original->evidence, $rebuilt->evidence );
+		$this->assertSame( $original->evidence->toArray(), $rebuilt->evidence->toArray() );
 		$this->assertSame( $original->docsUrl, $rebuilt->docsUrl );
 		$this->assertSame( $original->penalty(), $rebuilt->penalty() );
 	}
@@ -70,6 +71,6 @@ final class FindingFromArrayTest extends TestCase {
 		$this->assertSame( Status::WARN, $rebuilt->status );
 		$this->assertSame( Severity::MEDIUM, $rebuilt->severity );
 		$this->assertNull( $rebuilt->docsUrl );
-		$this->assertSame( [], $rebuilt->evidence );
+		$this->assertTrue( $rebuilt->evidence->isEmpty() );
 	}
 }

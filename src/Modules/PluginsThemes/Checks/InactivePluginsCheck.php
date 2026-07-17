@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\PluginsThemes\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -71,7 +72,7 @@ class InactivePluginsCheck implements Check {
 			title:          $this->label(),
 			description:    $message,
 			recommendation: __( 'Remove inactive plugins to reduce your attack surface. Even deactivated plugins can be exploited if they contain vulnerabilities, because their files are still accessible on disk.', 'wp-security' ),
-			evidence:       [ 'inactive_plugins' => $inactive ],
+			evidence:       ( new Evidence() )->add( 'inactive_plugins', $inactive ),
 		);
 	}
 }

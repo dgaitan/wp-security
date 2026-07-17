@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Seo\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -59,10 +60,9 @@ class PageTitleCheck implements Check {
 				/* translators: %d: character count */
 				description:    sprintf( __( 'Page title is %d characters long. Recommended length is 10–70 characters.', 'wp-security' ), $length ),
 				recommendation: __( 'Adjust your page title to 10–70 characters for best search-engine visibility.', 'wp-security' ),
-				evidence:       [
-					'title'  => $titleText,
-					'length' => $length,
-				],
+				evidence:       ( new Evidence() )
+					->add( 'title', $titleText )
+					->add( 'length', $length ),
 			);
 		}
 

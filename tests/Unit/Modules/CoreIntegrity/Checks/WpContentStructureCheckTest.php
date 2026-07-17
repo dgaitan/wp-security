@@ -114,8 +114,8 @@ final class WpContentStructureCheckTest extends TestCase {
 
 		$finding = $this->check->run( $this->makeContext() );
 
-		$this->assertArrayHasKey( 'missing_directories', $finding->evidence );
-		$missing = $finding->evidence['missing_directories'];
+		$this->assertTrue( $finding->evidence->has( 'missing_directories' ) );
+		$missing = $finding->evidence->get( 'missing_directories' );
 		$this->assertContains( 'plugins', $missing );
 		$this->assertContains( 'uploads', $missing );
 		$this->assertNotContains( 'themes', $missing );

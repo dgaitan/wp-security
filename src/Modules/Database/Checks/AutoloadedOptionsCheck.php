@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Database\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -64,7 +65,7 @@ class AutoloadedOptionsCheck implements Check {
 				$this->formatBytes( $sizeBytes )
 			),
 			recommendation: __( 'Review and remove unnecessary autoloaded options. Run SELECT option_name, LENGTH(option_value) FROM wp_options WHERE autoload="yes" ORDER BY 2 DESC to identify the largest contributors.', 'wp-security' ),
-			evidence:       [ 'autoloaded_size_bytes' => $sizeBytes ],
+			evidence:       ( new Evidence() )->add( 'autoloaded_size_bytes', $sizeBytes ),
 		);
 	}
 

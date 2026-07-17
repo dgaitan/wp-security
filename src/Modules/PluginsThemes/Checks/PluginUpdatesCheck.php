@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\PluginsThemes\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -62,7 +63,7 @@ class PluginUpdatesCheck implements Check {
 			title:          $this->label(),
 			description:    $message,
 			recommendation: __( 'Update all plugins promptly to patch known security vulnerabilities. Attackers scan for unpatched versions shortly after CVEs are published.', 'wp-security' ),
-			evidence:       [ 'plugins_needing_update' => $slugs ],
+			evidence:       ( new Evidence() )->add( 'plugins_needing_update', $slugs ),
 		);
 	}
 }

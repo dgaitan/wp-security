@@ -120,7 +120,7 @@ final class WpConfigCheckTest extends TestCase {
 		);
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'disallow_file_edit', $finding->evidence );
-		$this->assertArrayHasKey( 'wp_debug', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'disallow_file_edit' ) );
+		$this->assertTrue( $finding->evidence->has( 'wp_debug' ) );
 	}
 }

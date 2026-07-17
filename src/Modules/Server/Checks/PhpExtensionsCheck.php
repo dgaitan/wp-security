@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -83,7 +84,7 @@ class PhpExtensionsCheck implements Check {
 				implode( ', ', array_keys( $missing ) )
 			),
 			recommendation: __( 'Contact your hosting provider and ask them to enable the missing extensions.', 'wp-security' ),
-			evidence:       [ 'missing' => $missing ],
+			evidence:       ( new Evidence() )->add( 'missing', $missing ),
 		);
 	}
 }

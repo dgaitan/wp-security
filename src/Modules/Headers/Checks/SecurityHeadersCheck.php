@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Headers\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -112,10 +113,9 @@ class SecurityHeadersCheck implements Check {
 			title:          $this->label(),
 			description:    implode( ' ', $descriptionParts ),
 			recommendation: __( 'Configure your web server or CDN to include the missing security headers, and tighten the Content-Security-Policy to remove unsafe-inline, unsafe-eval, and wildcard sources.', 'wp-security' ),
-			evidence:       [
-				'missing'        => $missing,
-				'csp_weaknesses' => $cspWeaknesses,
-			],
+			evidence:       ( new Evidence() )
+				->add( 'missing', $missing )
+				->add( 'csp_weaknesses', $cspWeaknesses ),
 		);
 	}
 

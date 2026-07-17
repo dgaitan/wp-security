@@ -120,7 +120,7 @@ final class HstsCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( 3600, $finding->evidence['max_age'] );
+		$this->assertSame( 3600, $finding->evidence->get( 'max_age' ) );
 	}
 
 	public function test_max_age_zero_returns_warn_high(): void {

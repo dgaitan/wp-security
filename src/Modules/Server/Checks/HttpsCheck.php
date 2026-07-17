@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -49,7 +50,7 @@ class HttpsCheck implements Check {
 			title:          $this->label(),
 			description:    __( 'The site home URL is not using HTTPS. Traffic is transmitted in plain text.', 'wp-security' ),
 			recommendation: __( 'Install a TLS certificate (e.g. via Let\'s Encrypt) and update the WordPress home URL and site URL to https://.', 'wp-security' ),
-			evidence:       [ 'home_url' => $url ],
+			evidence:       ( new Evidence() )->add( 'home_url', $url ),
 		);
 	}
 }

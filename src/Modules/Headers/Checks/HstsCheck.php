@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Headers\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -62,7 +63,7 @@ class HstsCheck implements Check {
 				title:          $this->label(),
 				description:    __( 'The Strict-Transport-Security header is present but its max-age is missing or zero, which instructs browsers to stop enforcing HTTPS.', 'wp-security' ),
 				recommendation: __( 'Set "Strict-Transport-Security: max-age=31536000; includeSubDomains" with a max-age of at least 6 months.', 'wp-security' ),
-				evidence:       [ 'max_age' => $maxAge ],
+				evidence:       ( new Evidence() )->add( 'max_age', $maxAge ),
 			);
 		}
 
@@ -78,7 +79,7 @@ class HstsCheck implements Check {
 					$maxAge
 				),
 				recommendation: __( 'Increase the HSTS max-age to at least 15552000 seconds (6 months).', 'wp-security' ),
-				evidence:       [ 'max_age' => $maxAge ],
+				evidence:       ( new Evidence() )->add( 'max_age', $maxAge ),
 			);
 		}
 

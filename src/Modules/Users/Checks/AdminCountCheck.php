@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Users\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -60,7 +61,7 @@ class AdminCountCheck implements Check {
 				$adminCount
 			),
 			recommendation: __( 'Review administrator accounts and downgrade any that do not require full administrator access to a lower capability role (Editor, Author, or Contributor).', 'wp-security' ),
-			evidence:       [ 'admin_user_count' => $adminCount ],
+			evidence:       ( new Evidence() )->add( 'admin_user_count', $adminCount ),
 		);
 	}
 }

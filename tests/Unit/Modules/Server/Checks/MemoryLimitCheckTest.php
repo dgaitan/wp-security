@@ -121,7 +121,7 @@ final class MemoryLimitCheckTest extends TestCase {
 		$context = new MockContext( values: [ 'memory_limit' => '32M' ] );
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'current', $finding->evidence );
-		$this->assertArrayHasKey( 'recommended_minimum', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'current' ) );
+		$this->assertTrue( $finding->evidence->has( 'recommended_minimum' ) );
 	}
 }

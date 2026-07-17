@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -52,10 +53,9 @@ class PhpVersionCheck implements Check {
 			/* translators: %s: PHP version number */
 			description:    sprintf( __( 'PHP %s is no longer receiving security updates.', 'wp-security' ), $version ),
 			recommendation: __( 'Upgrade to PHP 8.1 or later. Contact your hosting provider if you cannot upgrade independently.', 'wp-security' ),
-			evidence:       [
-				'current'        => $version,
-				'minimum_secure' => self::MIN_SECURE,
-			],
+			evidence:       ( new Evidence() )
+				->add( 'current', $version )
+				->add( 'minimum_secure', self::MIN_SECURE ),
 		);
 	}
 }

@@ -70,7 +70,7 @@ class AutoloadedOptionsCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( 1100000, $finding->evidence['autoloaded_size_bytes'] );
+		$this->assertSame( 1100000, $finding->evidence->get( 'autoloaded_size_bytes' ) );
 	}
 
 	public function test_zero_bytes_returns_pass(): void {

@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\CoreIntegrity\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -73,7 +74,7 @@ class WpContentStructureCheck implements Check {
 				implode( ', ', $missing )
 			),
 			recommendation: __( 'Ensure your WordPress installation has the standard wp-content/plugins, wp-content/themes, and wp-content/uploads directories. Their absence may indicate a misconfiguration or a directory that has been renamed or removed.', 'wp-security' ),
-			evidence:       [ 'missing_directories' => $missing ],
+			evidence:       ( new Evidence() )->add( 'missing_directories', $missing ),
 		);
 	}
 }
