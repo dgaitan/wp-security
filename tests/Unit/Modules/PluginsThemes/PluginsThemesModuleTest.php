@@ -31,6 +31,7 @@ class PluginsThemesModuleTest extends TestCase {
 		$ids = array_map( static fn ( $c ) => $c->id(), iterator_to_array( $this->module->checks() ) );
 
 		$this->assertContains( 'plugins_themes.plugin_updates', $ids );
+		$this->assertContains( 'plugins_themes.theme_updates', $ids );
 		$this->assertContains( 'plugins_themes.inactive_plugins', $ids );
 		$this->assertNotContains( 'plugins_themes.vulnerability_advisory', $ids );
 	}

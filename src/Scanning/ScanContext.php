@@ -64,6 +64,12 @@ class ScanContext implements Context {
 	 *   'xmlrpc_enabled'          → bool — whether XML-RPC is enabled (via filter)
 	 *   'rest_users_public'       → bool|null — whether /wp/v2/users is publicly accessible
 	 *   'plugin_update_slugs'     → array<int,string>|null — plugin files that have pending updates
+	 *   'theme_update_slugs'      → array<int,string>|null — theme stylesheet slugs that have pending updates
+	 *   'core_update_available'   → array{current:string,latest:string,response:string}|null — pending core update, if any
+	 *   'wp_cron_disabled'        → bool — value of the DISABLE_WP_CRON constant
+	 *   'cron_pending_count'      → int|null — WP-Cron events with a timestamp in the past (via _get_cron_array())
+	 *   'action_scheduler_overdue_count' → int|null — Action Scheduler pending/failed actions past their scheduled time
+	 *   'php_error_log_tail'      → array<int,string>|null — last ~100 lines of the resolved PHP error log, bounded read
 	 *   'vulnerability_advisor'   → VulnerabilityAdvisor — configured provider instance
 	 *   'active_theme_slug'       → string|null — stylesheet name of the active theme
 	 *   'active_theme_version'    → string|null — version of the active theme
@@ -108,6 +114,12 @@ class ScanContext implements Context {
 			'xmlrpc_enabled'          => (bool) apply_filters( 'xmlrpc_enabled', true ),
 			'rest_users_public'       => $this->resolveRestUsersPublic(),
 			'plugin_update_slugs'     => $this->resolvePluginUpdateSlugs(),
+			'theme_update_slugs'      => $this->resolveThemeUpdateSlugs(),
+			'core_update_available'   => $this->resolveCoreUpdateAvailable(),
+			'wp_cron_disabled'        => defined( 'DISABLE_WP_CRON' ) && (bool) constant( 'DISABLE_WP_CRON' ),
+			'cron_pending_count'      => $this->resolveCronPendingCount(),
+			'action_scheduler_overdue_count' => $this->resolveActionSchedulerOverdueCount(),
+			'php_error_log_tail'      => $this->resolvePhpErrorLogTail(),
 			'vulnerability_advisor'   => new VulnerabilityAdvisor( (array) get_option( 'wp_security_settings', [] ) ),
 			'active_theme_slug'       => function_exists( 'wp_get_theme' ) ? wp_get_theme()->get_stylesheet() : null,
 			'active_theme_version'    => function_exists( 'wp_get_theme' ) ? wp_get_theme()->get( 'Version' ) : null,
@@ -256,6 +268,165 @@ class ScanContext implements Context {
 		/** @var array<string, mixed> $response */
 		$response = (array) $update->response;
 		return array_keys( $response );
+	}
+
+	/** @return array<int, string>|null */
+	private function resolveThemeUpdateSlugs(): ?array {
+		if ( ! function_exists( 'get_site_transient' ) ) {
+			return null;
+		}
+		$update = get_site_transient( 'theme_updates' );
+		if ( ! is_object( $update ) || ! property_exists( $update, 'response' ) ) {
+			return [];
+		}
+		/** @var array<string, mixed> $response */
+		$response = (array) $update->response;
+		return array_keys( $response );
+	}
+
+	/** @return array{current: string, latest: string, response: string}|null */
+	private function resolveCoreUpdateAvailable(): ?array {
+		if ( ! function_exists( 'get_site_transient' ) ) {
+			return null;
+		}
+		$update = get_site_transient( 'update_core' );
+		if ( ! is_object( $update ) || ! property_exists( $update, 'updates' ) || ! is_array( $update->updates ) ) {
+			return null;
+		}
+		$first = $update->updates[0] ?? null;
+		if ( ! is_object( $first ) ) {
+			return null;
+		}
+		return [
+			'current'  => $this->wpVersion(),
+			'latest'   => isset( $first->version ) ? (string) $first->version : '',
+			'response' => isset( $first->response ) ? (string) $first->response : '',
+		];
+	}
+
+	/**
+	 * Counts WP-Cron events whose scheduled timestamp has already passed —
+	 * a signal that the site's cron runner (real or DISABLE_WP_CRON-driven
+	 * pseudo-cron) isn't actually firing.
+	 */
+	private function resolveCronPendingCount(): ?int {
+		if ( ! function_exists( '_get_cron_array' ) ) {
+			return null;
+		}
+		$cron = _get_cron_array();
+		if ( ! is_array( $cron ) ) {
+			return null;
+		}
+		$now   = time();
+		$count = 0;
+		foreach ( array_keys( $cron ) as $timestamp ) {
+			if ( (int) $timestamp < $now ) {
+				++$count;
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * Counts Action Scheduler actions that are still PENDING despite their
+	 * scheduled date being in the past — the AS-equivalent of an overdue
+	 * WP-Cron event. Action Scheduler is bundled with the plugin, but this
+	 * still guards with class_exists() in case a host strips it.
+	 */
+	private function resolveActionSchedulerOverdueCount(): ?int {
+		if ( ! class_exists( '\ActionScheduler_Store' ) || ! function_exists( 'as_get_datetime_object' ) ) {
+			return null;
+		}
+
+		try {
+			$store = \ActionScheduler_Store::instance();
+			$count = $store->query_actions(
+				[
+					'status'       => [ \ActionScheduler_Store::STATUS_PENDING ],
+					'date'         => as_get_datetime_object(),
+					'date_compare' => '<=',
+					'per_page'     => -1,
+				],
+				'count'
+			);
+			return is_numeric( $count ) ? (int) $count : null;
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+	}
+
+	/**
+	 * Bounded tail-read of the resolved PHP error log — never a full
+	 * file_get_contents(), which would be unsafe against a multi-GB log.
+	 *
+	 * @return array<int, string>|null
+	 */
+	private function resolvePhpErrorLogTail(): ?array {
+		$path = $this->resolveErrorLogPath();
+
+		if ( null === $path || ! is_readable( $path ) ) {
+			return null;
+		}
+
+		return $this->tailFile( $path, 100, 200 * 1024 );
+	}
+
+	private function resolveErrorLogPath(): ?string {
+		if ( defined( 'WP_DEBUG_LOG' ) ) {
+			// WP_DEBUG_LOG is documented as accepting bool *or* a custom log file
+			// path string — narrower than the stub's fixed bool type, so read it
+			// through an explicitly mixed-typed local to avoid a false-positive
+			// "always false" from static analysis of the stub's declared type.
+			/** @var mixed $debugLog */
+			$debugLog = constant( 'WP_DEBUG_LOG' );
+
+			if ( is_string( $debugLog ) ) {
+				return $debugLog;
+			}
+			if ( true === $debugLog ) {
+				return $this->contentPath() . 'debug.log';
+			}
+		}
+		$iniPath = ini_get( 'error_log' );
+		return is_string( $iniPath ) && '' !== $iniPath ? $iniPath : null;
+	}
+
+	/**
+	 * Reads at most $maxLines lines / $maxBytes bytes from the end of a file
+	 * by seeking backward from EOF, rather than loading the whole file into
+	 * memory — safe against arbitrarily large logs.
+	 *
+	 * @return array<int, string>
+	 */
+	private function tailFile( string $path, int $maxLines, int $maxBytes ): array {
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fread, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		// WP_Filesystem has no seek-from-end/partial-read primitive, so a bounded
+		// tail-read of a potentially multi-GB log needs direct, low-level file
+		// access rather than loading the whole file through WP_Filesystem::get_contents().
+		$handle = @fopen( $path, 'rb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- deliberately non-fatal on an unreadable/vanished log file.
+
+		if ( false === $handle ) {
+			return [];
+		}
+
+		$fileSize = filesize( $path );
+		$readSize = false !== $fileSize ? min( $fileSize, $maxBytes ) : $maxBytes;
+
+		fseek( $handle, -$readSize, SEEK_END );
+		$chunk = fread( $handle, $readSize );
+		fclose( $handle );
+		// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_fopen, WordPress.WP.AlternativeFunctions.file_system_operations_fread, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+
+		if ( false === $chunk || '' === trim( $chunk ) ) {
+			return [];
+		}
+
+		$lines = preg_split( '/\R/', trim( $chunk ) );
+		if ( false === $lines ) {
+			return [];
+		}
+
+		return array_slice( $lines, -$maxLines );
 	}
 
 	private function resolveAutoloadedOptionsSize(): ?int {

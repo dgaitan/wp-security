@@ -46,6 +46,19 @@ Never bypass this chain. Never write scan logic directly in a controller or serv
 
 ---
 
+## Remediation actions — the one mutating-action primitive (Sprint 9)
+
+Everything above is about `Check`s, which MUST stay read-only. `RemediationAction` (`src/Contracts/RemediationAction.php`) is the single, deliberate exception:
+
+1. A **RemediationAction** declares a real WP capability (`update_plugins`, not just `manage_options`), a `describe()` confirmation string, an `isAvailable()` re-check, and an `apply()` that mutates and returns a `RemediationResult` (never a `Finding` — remediation outcomes are audit-log entries, not scored check results).
+2. Actions register through `wp_security/remediations` — never hard-coded — mirroring `wp_security/modules` exactly.
+3. `POST /wp-security/v1/remediations/{id}/apply` requires the action's own `capability()` *and* an explicit `confirm: true` in the body. A nonce-valid, authenticated POST without `confirm: true` MUST still do nothing.
+4. Applications are logged to `wpsec_remediation_log` via `RemediationLogRepository` — never reuse `wpsec_findings`/`Status` for this.
+
+Never add a mutating side effect to a `Check`. If a new action needs to change site state, it's a new `RemediationAction`, gated the same way.
+
+---
+
 ## DRY — shared primitives
 
 | What | Where | Rule |
@@ -54,6 +67,8 @@ Never bypass this chain. Never write scan logic directly in a controller or serv
 | Status values | `src/Domain/Status.php` | Use the `Status` enum; never hardcode status strings |
 | Severity + penalty | `src/Domain/Severity.php` | Use the `Severity` enum; `penalty()` is the single source of scoring truth |
 | Score calculation | `src/Scoring/ScoringService.php` | All module + overall scores come from here; no ad-hoc arithmetic |
+| Remediation result | `src/Domain/RemediationResult.php` | Every `RemediationAction::apply()` returns a `RemediationResult`; never a `Finding` |
+| Remediation log | `src/Persistence/RemediationLogRepository.php` | All applied-remediation audit rows go here; never `wpsec_findings` |
 | REST base | `src/Rest/AbstractController.php` | All controllers extend this; permission check + respond() live here |
 
 ---

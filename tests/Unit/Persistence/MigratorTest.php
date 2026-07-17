@@ -7,7 +7,7 @@
  *     Given the WP Security plugin is installed
  *     And the autoloader is registered
  *
- *   Scenario: Activation creates all three custom tables
+ *   Scenario: Activation creates all four custom tables
  *     Given a fresh install with no stored schema version
  *     When Migrator::run() is called
  *     Then dbDelta() receives one CREATE TABLE statement per plugin table
@@ -21,7 +21,8 @@
  *   Scenario: Table definitions cover every plugin table
  *     Given a Migrator
  *     When tableDefinitions() is called
- *     Then it returns CREATE TABLE statements for scan_runs, findings, and logins
+ *     Then it returns CREATE TABLE statements for scan_runs, findings, logins,
+ *     and remediation_log (added Sprint 9)
  *
  * @package WPSecurity\Tests
  */
@@ -47,7 +48,7 @@ final class MigratorTest extends TestCase {
 		parent::tearDown();
 	}
 
-	public function test_run_creates_all_three_tables_via_dbdelta(): void {
+	public function test_run_creates_all_four_tables_via_dbdelta(): void {
 		$migrator = new Migrator( new FakeWpdb( 'wp_' ) );
 
 		$migrator->run();
@@ -56,12 +57,13 @@ final class MigratorTest extends TestCase {
 
 		$statements = $GLOBALS['wp_security_test_dbdelta'][0];
 		$this->assertIsArray( $statements );
-		$this->assertCount( 3, $statements );
+		$this->assertCount( 4, $statements );
 
 		$joined = implode( "\n", $statements );
 		$this->assertStringContainsString( 'wp_wpsec_scan_runs', $joined );
 		$this->assertStringContainsString( 'wp_wpsec_findings', $joined );
 		$this->assertStringContainsString( 'wp_wpsec_logins', $joined );
+		$this->assertStringContainsString( 'wp_wpsec_remediation_log', $joined );
 	}
 
 	public function test_run_stores_the_schema_version(): void {
@@ -86,7 +88,7 @@ final class MigratorTest extends TestCase {
 	public function test_table_definitions_cover_every_table(): void {
 		$definitions = ( new Migrator( new FakeWpdb( 'wp_' ) ) )->tableDefinitions();
 
-		$this->assertCount( 3, $definitions );
+		$this->assertCount( 4, $definitions );
 		foreach ( $definitions as $sql ) {
 			$this->assertStringContainsString( 'CREATE TABLE', $sql );
 			$this->assertStringContainsString( 'PRIMARY KEY', $sql );

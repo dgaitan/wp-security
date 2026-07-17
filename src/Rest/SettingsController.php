@@ -41,25 +41,29 @@ class SettingsController extends AbstractController {
 					'callback'            => [ $this, 'update' ],
 					'permission_callback' => [ $this, 'permissionCheck' ],
 					'args'                => [
-						'vuln_advisor_provider' => [
+						'vuln_advisor_provider'          => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_key',
 						],
-						'wpscan_api_key'        => [
+						'wpscan_api_key'                 => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_text_field',
 						],
-						'scan_frequency'        => [
+						'scan_frequency'                 => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_key',
 						],
-						'alert_email'           => [
+						'alert_email'                    => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_email',
 						],
-						'slack_webhook_url'     => [
+						'slack_webhook_url'              => [
 							'type'              => 'string',
 							'sanitize_callback' => 'esc_url_raw',
+						],
+						'enable_core_update_remediation' => [
+							'type'              => 'boolean',
+							'sanitize_callback' => 'rest_sanitize_boolean',
 						],
 					],
 				],
@@ -117,6 +121,11 @@ class SettingsController extends AbstractController {
 			} else {
 				unset( $current['slack_webhook_url'] );
 			}
+		}
+
+		$enableCoreRemediation = $request->get_param( 'enable_core_update_remediation' );
+		if ( null !== $enableCoreRemediation ) {
+			$current['enable_core_update_remediation'] = rest_sanitize_boolean( (bool) $enableCoreRemediation );
 		}
 
 		update_option( self::OPTION_KEY, $current, false );

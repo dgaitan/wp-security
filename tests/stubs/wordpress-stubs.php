@@ -642,3 +642,34 @@ if ( ! function_exists( 'esc_attr' ) ) {
 		return htmlspecialchars( $text, ENT_QUOTES );
 	}
 }
+
+if ( ! function_exists( 'get_current_user_id' ) ) {
+	function get_current_user_id(): int {
+		return (int) ( $GLOBALS['wp_security_test_current_user_id'] ?? 1 );
+	}
+}
+
+if ( ! function_exists( 'wp_generate_uuid4' ) ) {
+	function wp_generate_uuid4(): string {
+		return sprintf(
+			'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+			mt_rand( 0, 0xffff ),
+			mt_rand( 0, 0xffff ),
+			mt_rand( 0, 0xffff ),
+			mt_rand( 0, 0x0fff ) | 0x4000,
+			mt_rand( 0, 0x3fff ) | 0x8000,
+			mt_rand( 0, 0xffff ),
+			mt_rand( 0, 0xffff ),
+			mt_rand( 0, 0xffff )
+		);
+	}
+}
+
+if ( ! function_exists( 'rest_sanitize_boolean' ) ) {
+	function rest_sanitize_boolean( mixed $value ): bool {
+		if ( is_string( $value ) && in_array( strtolower( $value ), [ 'false', '0' ], true ) ) {
+			return false;
+		}
+		return (bool) $value;
+	}
+}

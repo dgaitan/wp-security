@@ -164,6 +164,11 @@ final class FakeWpdb extends wpdb {
 			$rows     = array_values( array_filter( $rows, static fn ( array $r ): bool => (string) ( $r['module_id'] ?? '' ) === $moduleId ) );
 		}
 
+		if ( preg_match( "/batch_id = '([^']*)'/", $query, $m ) ) {
+			$batchId = $m[1];
+			$rows    = array_values( array_filter( $rows, static fn ( array $r ): bool => (string) ( $r['batch_id'] ?? '' ) === $batchId ) );
+		}
+
 		if ( preg_match( '/status IN \(([^)]*)\)/i', $query, $m ) ) {
 			$statuses = array_map( static fn ( string $s ): string => trim( $s, " '" ), explode( ',', $m[1] ) );
 			$rows     = array_values( array_filter( $rows, static fn ( array $r ): bool => in_array( (string) ( $r['status'] ?? '' ), $statuses, true ) ) );
@@ -188,6 +193,7 @@ final class FakeWpdb extends wpdb {
 			$this->prefix . 'wpsec_findings',
 			$this->prefix . 'wpsec_scan_runs',
 			$this->prefix . 'wpsec_logins',
+			$this->prefix . 'wpsec_remediation_log',
 		];
 		foreach ( $known as $table ) {
 			if ( str_contains( $query, $table ) ) {

@@ -10,17 +10,18 @@ use wpdb;
  * Creates and upgrades the plugin's custom database tables using dbDelta().
  *
  * Tables:
- *   {prefix}_wpsec_scan_runs   — one row per scan execution
- *   {prefix}_wpsec_findings    — findings linked to a run
- *   {prefix}_wpsec_logins      — last-login tracking per user
+ *   {prefix}_wpsec_scan_runs        — one row per scan execution
+ *   {prefix}_wpsec_findings         — findings linked to a run
+ *   {prefix}_wpsec_logins           — last-login tracking per user
+ *   {prefix}_wpsec_remediation_log  — audit trail of applied remediation actions (v2)
  *
  * The current schema version is stored in the `wp_security_schema_version`
  * option.  run() is a no-op when the stored version equals SCHEMA_VERSION,
- * so it is safe to call on every activation.
+ * so it is safe to call on every activation and on every plugin boot.
  */
 class Migrator {
 
-	public const SCHEMA_VERSION = 1;
+	public const SCHEMA_VERSION = 2;
 
 	public const OPTION_VERSION = 'wp_security_schema_version';
 
@@ -58,6 +59,7 @@ class Migrator {
 		$runs            = $this->wpdb->prefix . 'wpsec_scan_runs';
 		$findings        = $this->wpdb->prefix . 'wpsec_findings';
 		$logins          = $this->wpdb->prefix . 'wpsec_logins';
+		$remediationLog  = $this->wpdb->prefix . 'wpsec_remediation_log';
 
 		return [
 			"CREATE TABLE {$runs} (
@@ -97,6 +99,25 @@ class Migrator {
 				last_login_ip varchar(64) DEFAULT NULL,
 				login_count int(10) unsigned NOT NULL DEFAULT 0,
 				PRIMARY KEY  (user_id)
+			) {$charset_collate};",
+
+			"CREATE TABLE {$remediationLog} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				action_id varchar(128) NOT NULL,
+				module_id varchar(64) DEFAULT NULL,
+				target varchar(255) DEFAULT NULL,
+				params longtext DEFAULT NULL,
+				status varchar(16) NOT NULL,
+				message text NOT NULL,
+				before_state longtext DEFAULT NULL,
+				after_state longtext DEFAULT NULL,
+				user_id bigint(20) unsigned NOT NULL,
+				batch_id varchar(64) DEFAULT NULL,
+				created_at datetime NOT NULL,
+				PRIMARY KEY  (id),
+				KEY action_status (action_id, status),
+				KEY module_id (module_id),
+				KEY batch_id (batch_id)
 			) {$charset_collate};",
 		];
 	}

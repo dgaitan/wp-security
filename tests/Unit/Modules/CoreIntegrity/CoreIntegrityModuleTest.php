@@ -94,6 +94,9 @@ final class CoreIntegrityModuleTest extends TestCase {
 		$this->assertContains( 'core_integrity.xmlrpc', $ids );
 		$this->assertContains( 'core_integrity.rest_user_enumeration', $ids );
 		$this->assertContains( 'core_integrity.vulnerability_advisory', $ids );
+		$this->assertContains( 'core_integrity.core_update_available', $ids );
+		$this->assertContains( 'core_integrity.cron_health', $ids );
+		$this->assertContains( 'core_integrity.dashboard_notices', $ids );
 	}
 
 	public function test_filter_can_add_extra_check(): void {

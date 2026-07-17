@@ -1,0 +1,53 @@
+@use 'variables' as *;
+
+// ---------------------------------------------------------------------------
+// RemediationButton — the two-step (confirm → apply) mutating-action control.
+// ---------------------------------------------------------------------------
+
+.wpsec-remediation-button {
+	display: inline-flex;
+	flex-direction: column;
+	gap: $wpsec-spacing-xs;
+}
+
+.wpsec-remediation-button__spinner {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border: 2px solid rgba( 0, 0, 0, 0.15 );
+	border-top-color: $wpsec-color-primary;
+	border-radius: 50%;
+	// Reuses the wpsec-spin keyframe already defined in _module-page.scss.
+	animation: wpsec-spin 0.7s linear infinite;
+	flex-shrink: 0;
+	margin-right: $wpsec-spacing-xs;
+}
+
+.wpsec-remediation-button__error {
+	color: #d63638;
+	margin: 0;
+	font-size: $wpsec-font-sm;
+}
+
+.wpsec-remediation-confirm {
+	display: flex;
+	flex-direction: column;
+	gap: $wpsec-spacing-sm;
+	padding: $wpsec-spacing-md;
+	background: $wpsec-color-primary-light;
+	border: 1px solid $wpsec-color-primary;
+	border-radius: $wpsec-radius-md;
+	max-width: 420px;
+}
+
+.wpsec-remediation-confirm__message {
+	margin: 0;
+	color: $wpsec-color-text;
+	font-size: $wpsec-font-base;
+	line-height: 1.5;
+}
+
+.wpsec-remediation-confirm__actions {
+	display: flex;
+	gap: $wpsec-spacing-sm;
+}

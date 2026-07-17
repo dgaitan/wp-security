@@ -6,6 +6,7 @@ namespace WPSecurity\Container;
 
 use WPSecurity\Admin\AdminPage;
 use WPSecurity\Admin\ModuleRegistry;
+use WPSecurity\Admin\RemediationRegistry;
 use WPSecurity\Alerting\AlertService;
 use WPSecurity\Contracts\Context;
 use WPSecurity\Scanning\ScanContext;
@@ -30,6 +31,11 @@ final class CoreServiceProvider extends ServiceProvider {
 		$this->container->singleton(
 			ModuleRegistry::class,
 			static fn(): ModuleRegistry => new ModuleRegistry()
+		);
+
+		$this->container->singleton(
+			RemediationRegistry::class,
+			static fn(): RemediationRegistry => new RemediationRegistry()
 		);
 
 		$this->container->singleton(

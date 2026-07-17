@@ -15,15 +15,19 @@ use WPSecurity\Container\ServiceProvider;
 use WPSecurity\Persistence\Migrator;
 use WPSecurity\Rest\DashboardController;
 use WPSecurity\Rest\ModulesController;
+use WPSecurity\Rest\RemediationsController;
 use WPSecurity\Rest\ScansController;
 use WPSecurity\Rest\SettingsController;
 use WPSecurity\Modules\Accessibility\AccessibilityModule;
 use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
+use WPSecurity\Modules\CoreIntegrity\Remediations\CoreUpdateRemediation;
 use WPSecurity\Modules\Database\DatabaseModule;
 use WPSecurity\Modules\Dns\DnsModule;
 use WPSecurity\Modules\Headers\HeadersModule;
 use WPSecurity\Modules\Performance\PerformanceModule;
 use WPSecurity\Modules\PluginsThemes\PluginsThemesModule;
+use WPSecurity\Modules\PluginsThemes\Remediations\PluginUpdateRemediation;
+use WPSecurity\Modules\PluginsThemes\Remediations\ThemeUpdateRemediation;
 use WPSecurity\Modules\Seo\SeoModule;
 use WPSecurity\Modules\Server\ServerModule;
 use WPSecurity\Modules\Users\UsersModule;
@@ -70,6 +74,13 @@ final class Plugin {
 		}
 
 		$this->registerProviders();
+
+		// A no-op beyond a single get_option() call once the stored schema
+		// version already matches SCHEMA_VERSION — safe on every request,
+		// and the only way an already-active install picks up a schema bump
+		// without a deactivate/reactivate cycle.
+		$this->container->get( Migrator::class )->run();
+
 		$this->registerHooks();
 
 		$this->booted = true;
@@ -147,6 +158,20 @@ final class Plugin {
 			)
 		);
 
+		// Register built-in remediation actions — the mutating-action twin of
+		// the wp_security/modules filter above, collected by RemediationRegistry.
+		add_filter(
+			'wp_security/remediations',
+			static fn ( array $actions ): array => array_merge(
+				$actions,
+				[
+					new PluginUpdateRemediation(),
+					new ThemeUpdateRemediation(),
+					new CoreUpdateRemediation(),
+				]
+			)
+		);
+
 		// Admin page — React SPA mount and asset enqueueing.
 		$container->get( AdminPage::class )->register();
 
@@ -158,6 +183,7 @@ final class Plugin {
 				$container->get( DashboardController::class )->register();
 				$container->get( ModulesController::class )->register();
 				$container->get( SettingsController::class )->register();
+				$container->get( RemediationsController::class )->register();
 			}
 		);
 
@@ -169,6 +195,15 @@ final class Plugin {
 			},
 			10,
 			2
+		);
+
+		add_action(
+			RemediationsController::ACTION_APPLY,
+			static function ( string $actionId, array $params, int $userId, ?string $batchId ) use ( $container ): void {
+				$container->get( RemediationsController::class )->applyJob( $actionId, $params, $userId, $batchId );
+			},
+			10,
+			4
 		);
 
 		add_action(

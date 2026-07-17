@@ -6,6 +6,7 @@ namespace WPSecurity\Container;
 
 use WPSecurity\Persistence\FindingRepository;
 use WPSecurity\Persistence\Migrator;
+use WPSecurity\Persistence\RemediationLogRepository;
 use WPSecurity\Persistence\ScanRunRepository;
 
 /**
@@ -38,6 +39,14 @@ final class PersistenceServiceProvider extends ServiceProvider {
 			static function (): FindingRepository {
 				global $wpdb;
 				return new FindingRepository( $wpdb );
+			}
+		);
+
+		$this->container->singleton(
+			RemediationLogRepository::class,
+			static function (): RemediationLogRepository {
+				global $wpdb;
+				return new RemediationLogRepository( $wpdb );
 			}
 		);
 	}

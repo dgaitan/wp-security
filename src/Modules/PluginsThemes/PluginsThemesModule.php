@@ -8,6 +8,7 @@ use WPSecurity\Contracts\Module;
 use WPSecurity\Modules\PluginsThemes\Checks\InactivePluginsCheck;
 use WPSecurity\Modules\PluginsThemes\Checks\OutdatedJsLibraryCheck;
 use WPSecurity\Modules\PluginsThemes\Checks\PluginUpdatesCheck;
+use WPSecurity\Modules\PluginsThemes\Checks\ThemeUpdatesCheck;
 
 /**
  * Plugins & Themes module — update hygiene and known CVE detection.
@@ -32,6 +33,7 @@ class PluginsThemesModule implements Module {
 	public function checks(): iterable {
 		$checks = [
 			new PluginUpdatesCheck(),
+			new ThemeUpdatesCheck(),
 			new InactivePluginsCheck(),
 			new OutdatedJsLibraryCheck(),
 		];
