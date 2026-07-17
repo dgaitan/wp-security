@@ -122,7 +122,7 @@ class SuspiciousContentCheckTest extends TestCase {
 		$finding = $this->check->run( $ctx );
 
 		$this->assertSame( Status::FAIL, $finding->status );
-		$this->assertSame( 3, $finding->evidence['suspicious_option_count'] );
-		$this->assertSame( 2, $finding->evidence['suspicious_post_count'] );
+		$this->assertSame( 3, $finding->evidence->get( 'suspicious_option_count' ) );
+		$this->assertSame( 2, $finding->evidence->get( 'suspicious_post_count' ) );
 	}
 }

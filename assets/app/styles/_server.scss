@@ -143,6 +143,77 @@
 	word-break: break-all;
 }
 
+.wpsec-finding__evidence-empty {
+	color: $wpsec-color-muted;
+	font-style: italic;
+}
+
+.wpsec-finding__evidence-boolean {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px $wpsec-spacing-sm;
+	border-radius: $wpsec-radius-sm;
+	font-size: $wpsec-font-sm;
+	font-weight: 600;
+
+	&[data-value='yes'] { background: $wpsec-color-primary-light; color: $wpsec-color-primary; }
+	&[data-value='no']  { background: $wpsec-color-bg; color: $wpsec-color-muted; }
+}
+
+.wpsec-finding__evidence-list {
+	margin: 0;
+	padding-left: $wpsec-spacing-md;
+	list-style: disc;
+
+	li {
+		padding: 1px 0;
+	}
+}
+
+.wpsec-finding__evidence-subtable {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: $wpsec-font-sm;
+
+	th,
+	td {
+		padding: 3px $wpsec-spacing-sm 3px 0;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	th {
+		color: $wpsec-color-text;
+		font-weight: 600;
+		border-bottom: 1px solid $wpsec-color-border;
+	}
+
+	td {
+		color: $wpsec-color-muted;
+	}
+}
+
+.wpsec-finding__evidence-group {
+	margin: 0;
+}
+
+.wpsec-finding__evidence-group-row {
+	display: flex;
+	gap: $wpsec-spacing-sm;
+	padding: 1px 0;
+
+	dt {
+		font-weight: 600;
+		color: $wpsec-color-text;
+		white-space: nowrap;
+	}
+
+	dd {
+		margin: 0;
+		color: $wpsec-color-muted;
+	}
+}
+
 // Empty / error states.
 .wpsec-server__empty {
 	color: $wpsec-color-muted;

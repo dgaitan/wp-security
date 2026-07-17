@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -48,13 +49,12 @@ class TlsCertificateExpiryCheck implements Check {
 		}
 
 		$daysUntilExpiry = (int) ( $certificate['days_until_expiry'] ?? 0 );
-		$evidence        = [
-			'valid_to'          => $certificate['valid_to'] ?? null,
-			'days_until_expiry' => $daysUntilExpiry,
-			'subject_cn'        => $certificate['subject_cn'] ?? null,
-			'issuer_cn'         => $certificate['issuer_cn'] ?? null,
-			'self_signed'       => $certificate['self_signed'] ?? null,
-		];
+		$evidence        = ( new Evidence() )
+			->add( 'valid_to', $certificate['valid_to'] ?? null )
+			->add( 'days_until_expiry', $daysUntilExpiry )
+			->add( 'subject_cn', $certificate['subject_cn'] ?? null )
+			->add( 'issuer_cn', $certificate['issuer_cn'] ?? null )
+			->add( 'self_signed', $certificate['self_signed'] ?? null );
 
 		if ( $daysUntilExpiry < 0 ) {
 			return new Finding(

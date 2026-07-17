@@ -98,8 +98,8 @@ final class OutdatedJsLibraryCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertSame( 'jQuery', $finding->evidence['outdated'][0]['library'] );
-		$this->assertSame( 'CVE-2020-11022', $finding->evidence['outdated'][0]['reference'] );
+		$this->assertSame( 'jQuery', $finding->evidence->get( 'outdated' )[0]['library'] );
+		$this->assertSame( 'CVE-2020-11022', $finding->evidence->get( 'outdated' )[0]['reference'] );
 	}
 
 	public function test_outdated_jquery_ui_is_attributed_to_jquery_ui_not_jquery(): void {
@@ -119,7 +119,7 @@ final class OutdatedJsLibraryCheckTest extends TestCase {
 		$finding = $this->check->run( $context );
 
 		$this->assertSame( Status::WARN, $finding->status );
-		$this->assertSame( 'jQuery UI', $finding->evidence['outdated'][0]['library'] );
+		$this->assertSame( 'jQuery UI', $finding->evidence->get( 'outdated' )[0]['library'] );
 	}
 
 	public function test_unparseable_version_does_not_fail(): void {
@@ -139,7 +139,7 @@ final class OutdatedJsLibraryCheckTest extends TestCase {
 		$finding = $this->check->run( $context );
 
 		$this->assertSame( Status::PASS, $finding->status );
-		$this->assertArrayHasKey( 'version_unknown', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'version_unknown' ) );
 	}
 
 	public function test_null_page_asset_tags_returns_skipped(): void {

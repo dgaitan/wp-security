@@ -102,7 +102,7 @@ class InactivePluginsCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertContains( 'plugin-b/plugin-b.php', $finding->evidence['inactive_plugins'] );
+		$this->assertContains( 'plugin-b/plugin-b.php', $finding->evidence->get( 'inactive_plugins' ) );
 	}
 
 	public function test_multiple_inactive_plugins_returns_warn_with_all_slugs(): void {
@@ -120,7 +120,7 @@ class InactivePluginsCheckTest extends TestCase {
 		$finding = $this->check->run( $ctx );
 
 		$this->assertSame( Status::WARN, $finding->status );
-		$this->assertCount( 2, $finding->evidence['inactive_plugins'] );
+		$this->assertCount( 2, $finding->evidence->get( 'inactive_plugins' ) );
 	}
 
 	public function test_no_plugins_installed_returns_pass(): void {

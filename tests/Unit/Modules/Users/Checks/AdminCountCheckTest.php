@@ -74,7 +74,7 @@ class AdminCountCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::LOW, $finding->severity );
-		$this->assertSame( 2, $finding->evidence['admin_user_count'] );
+		$this->assertSame( 2, $finding->evidence->get( 'admin_user_count' ) );
 	}
 
 	public function test_three_admins_returns_warn_low(): void {
@@ -97,7 +97,7 @@ class AdminCountCheckTest extends TestCase {
 		$finding = $this->check->run( $ctx );
 
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( 10, $finding->evidence['admin_user_count'] );
+		$this->assertSame( 10, $finding->evidence->get( 'admin_user_count' ) );
 	}
 
 	public function test_zero_admins_returns_warn(): void {

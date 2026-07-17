@@ -37,6 +37,7 @@ declare( strict_types=1 );
 namespace WPSecurity\Tests\Unit\Persistence;
 
 use PHPUnit\Framework\TestCase;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -82,10 +83,9 @@ final class FindingRepositoryTest extends TestCase {
 			'Low memory',
 			'Memory limit is low.',
 			'Increase the limit.',
-			[
-				'limit'       => '64M',
-				'recommended' => '256M',
-			]
+			( new Evidence() )
+				->add( 'limit', '64M' )
+				->add( 'recommended', '256M' )
 		);
 
 		$this->repo->save( 7, 'server', $finding );
@@ -93,8 +93,18 @@ final class FindingRepositoryTest extends TestCase {
 
 		$this->assertSame(
 			[
-				'limit'       => '64M',
-				'recommended' => '256M',
+				[
+					'key'   => 'limit',
+					'label' => 'Limit',
+					'type'  => 'scalar',
+					'value' => '64M',
+				],
+				[
+					'key'   => 'recommended',
+					'label' => 'Recommended',
+					'type'  => 'scalar',
+					'value' => '256M',
+				],
 			],
 			$found[0]['evidence']
 		);

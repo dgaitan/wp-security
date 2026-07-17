@@ -64,7 +64,7 @@ class DormantUsersCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( 1, $finding->evidence['dormant_user_count'] );
+		$this->assertSame( 1, $finding->evidence->get( 'dormant_user_count' ) );
 	}
 
 	public function test_multiple_dormant_users_returns_warn_medium(): void {
@@ -73,7 +73,7 @@ class DormantUsersCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( 5, $finding->evidence['dormant_user_count'] );
+		$this->assertSame( 5, $finding->evidence->get( 'dormant_user_count' ) );
 	}
 
 	public function test_check_id_matches_finding(): void {

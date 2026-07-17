@@ -9,6 +9,7 @@ use RecursiveIteratorIterator;
 use UnexpectedValueException;
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -278,28 +279,18 @@ class SuspiciousFilesCheck implements Check {
 	}
 
 	/**
-	 * Build the evidence array, omitting empty categories.
+	 * Build the evidence, omitting empty categories.
 	 *
 	 * @param array{php_in_uploads: list<string>, blacklisted: list<string>, double_extension: list<string>, theme_violations: list<string>} $found
-	 * @return array<string, list<string>>
 	 */
-	private function buildEvidence( array $found ): array {
-		$evidence = [];
+	private function buildEvidence( array $found ): Evidence {
+		$evidence = new Evidence();
+		foreach ( array_keys( $found ) as $category ) {
+			if ( [] === $found[ $category ] ) {
+				continue;
+			}
 
-		if ( [] !== $found['php_in_uploads'] ) {
-			$evidence['php_in_uploads'] = $found['php_in_uploads'];
-		}
-
-		if ( [] !== $found['blacklisted'] ) {
-			$evidence['blacklisted'] = $found['blacklisted'];
-		}
-
-		if ( [] !== $found['double_extension'] ) {
-			$evidence['double_extension'] = $found['double_extension'];
-		}
-
-		if ( [] !== $found['theme_violations'] ) {
-			$evidence['theme_violations'] = $found['theme_violations'];
+			$evidence->add( $category, $found[ $category ] );
 		}
 
 		return $evidence;

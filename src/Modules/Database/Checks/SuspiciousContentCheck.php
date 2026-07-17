@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Database\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -62,10 +63,9 @@ class SuspiciousContentCheck implements Check {
 				$postCount
 			),
 			recommendation: __( 'Investigate these database entries immediately — they may indicate a malware injection. Compare against a known-good backup and restore from a clean snapshot if malware is confirmed.', 'wp-security' ),
-			evidence:       [
-				'suspicious_option_count' => $optionCount,
-				'suspicious_post_count'   => $postCount,
-			],
+			evidence:       ( new Evidence() )
+				->add( 'suspicious_option_count', $optionCount )
+				->add( 'suspicious_post_count', $postCount ),
 		);
 	}
 }

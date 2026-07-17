@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Headers\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -76,7 +77,7 @@ class SriCheck implements Check {
 					count( $missingSri )
 				),
 				recommendation: __( 'Add an integrity attribute (and crossorigin="anonymous") to every externally-hosted script tag and stylesheet link tag.', 'wp-security' ),
-				evidence:       [ 'missing_sri' => $missingSri ],
+				evidence:       ( new Evidence() )->add( 'missing_sri', $missingSri ),
 			);
 		}
 

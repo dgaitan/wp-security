@@ -119,8 +119,8 @@ final class CoreFilesCheckTest extends TestCase {
 
 		unlink( $tmpFile );
 
-		$this->assertArrayHasKey( 'modified_files', $finding->evidence );
-		$this->assertContains( $filename, $finding->evidence['modified_files'] );
+		$this->assertTrue( $finding->evidence->has( 'modified_files' ) );
+		$this->assertContains( $filename, $finding->evidence->get( 'modified_files' ) );
 	}
 
 	public function test_missing_core_file_is_not_flagged(): void {

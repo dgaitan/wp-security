@@ -74,8 +74,8 @@ final class HttpsCheckTest extends TestCase {
 		$context = new MockContext( homeUrl: 'http://example.test' );
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'home_url', $finding->evidence );
-		$this->assertSame( 'http://example.test', $finding->evidence['home_url'] );
+		$this->assertTrue( $finding->evidence->has( 'home_url' ) );
+		$this->assertSame( 'http://example.test', $finding->evidence->get( 'home_url' ) );
 	}
 
 	public function test_empty_url_returns_skipped(): void {

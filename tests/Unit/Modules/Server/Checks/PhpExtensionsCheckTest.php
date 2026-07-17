@@ -113,8 +113,8 @@ final class PhpExtensionsCheckTest extends TestCase {
 		$context    = new MockContext( values: [ 'php_extensions' => array_values( $extensions ) ] );
 		$finding    = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'missing', $finding->evidence );
-		$this->assertArrayHasKey( 'curl', $finding->evidence['missing'] );
+		$this->assertTrue( $finding->evidence->has( 'missing' ) );
+		$this->assertArrayHasKey( 'curl', $finding->evidence->get( 'missing' ) );
 	}
 
 	public function test_extension_check_is_case_insensitive(): void {

@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\CoreIntegrity\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -55,10 +56,9 @@ class WpConfigCheck implements Check {
 			title:          $this->label(),
 			description:    implode( '; ', $issues ) . '.',
 			recommendation: __( 'Add "define( \'DISALLOW_FILE_EDIT\', true );" and confirm "define( \'WP_DEBUG\', false );" in wp-config.php for production.', 'wp-security' ),
-			evidence:       [
-				'disallow_file_edit' => $disallowFileEdit,
-				'wp_debug'           => $wpDebug,
-			],
+			evidence:       ( new Evidence() )
+				->add( 'disallow_file_edit', $disallowFileEdit )
+				->add( 'wp_debug', $wpDebug ),
 		);
 	}
 }

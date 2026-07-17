@@ -37,6 +37,7 @@ declare( strict_types=1 );
 namespace WPSecurity\Tests\Unit\Domain;
 
 use PHPUnit\Framework\TestCase;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -92,7 +93,7 @@ final class FindingTest extends TestCase {
 			'PHP version',
 			'PHP is end of life.',
 			'Upgrade PHP.',
-			[ 'current' => '7.4' ],
+			( new Evidence() )->add( 'current', '7.4' ),
 			'https://example.test/docs'
 		);
 
@@ -104,7 +105,14 @@ final class FindingTest extends TestCase {
 				'title'          => 'PHP version',
 				'description'    => 'PHP is end of life.',
 				'recommendation' => 'Upgrade PHP.',
-				'evidence'       => [ 'current' => '7.4' ],
+				'evidence'       => [
+					[
+						'key'   => 'current',
+						'label' => 'Current',
+						'type'  => 'scalar',
+						'value' => '7.4',
+					],
+				],
 				'docs_url'       => 'https://example.test/docs',
 			],
 			$finding->toArray()

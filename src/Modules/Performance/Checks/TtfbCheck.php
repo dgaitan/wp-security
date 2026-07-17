@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Performance\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -49,7 +50,7 @@ class TtfbCheck implements Check {
 				/* translators: %s: TTFB in milliseconds */
 				description:    sprintf( __( 'TTFB is %.0f ms — well above the 800 ms threshold. Users experience slow initial load.', 'wp-security' ), $ms ),
 				recommendation: __( 'Investigate slow response times: check for slow database queries, unoptimised PHP, or missing page/object caching.', 'wp-security' ),
-				evidence:       [ 'ttfb_ms' => $ms ],
+				evidence:       ( new Evidence() )->add( 'ttfb_ms', $ms ),
 			);
 		}
 
@@ -62,7 +63,7 @@ class TtfbCheck implements Check {
 				/* translators: %s: TTFB in milliseconds */
 				description:    sprintf( __( 'TTFB is %.0f ms, above the recommended 200 ms target.', 'wp-security' ), $ms ),
 				recommendation: __( 'Enable page caching, object caching (Redis/Memcached), or a CDN to reduce TTFB.', 'wp-security' ),
-				evidence:       [ 'ttfb_ms' => $ms ],
+				evidence:       ( new Evidence() )->add( 'ttfb_ms', $ms ),
 			);
 		}
 

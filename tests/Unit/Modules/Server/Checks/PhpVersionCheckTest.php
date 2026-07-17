@@ -102,9 +102,9 @@ final class PhpVersionCheckTest extends TestCase {
 		$context = new MockContext( phpVersion: '7.4.0' );
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'current', $finding->evidence );
-		$this->assertArrayHasKey( 'minimum_secure', $finding->evidence );
-		$this->assertSame( '7.4.0', $finding->evidence['current'] );
+		$this->assertTrue( $finding->evidence->has( 'current' ) );
+		$this->assertTrue( $finding->evidence->has( 'minimum_secure' ) );
+		$this->assertSame( '7.4.0', $finding->evidence->get( 'current' ) );
 	}
 
 	public function test_pass_finding_has_no_score_penalty(): void {

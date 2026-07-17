@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Seo\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -64,7 +65,7 @@ class MetaDescriptionCheck implements Check {
 				/* translators: %d: character count */
 				description:    sprintf( __( 'Meta description is %d characters. Recommended: 50–160 characters.', 'wp-security' ), $length ),
 				recommendation: __( 'Adjust the meta description to 50–160 characters for best search-engine display.', 'wp-security' ),
-				evidence:       [ 'length' => $length ],
+				evidence:       ( new Evidence() )->add( 'length', $length ),
 			);
 		}
 

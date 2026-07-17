@@ -110,7 +110,7 @@ final class SriCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertContains( 'https://cdn.example.com/unprotected.js', $finding->evidence['missing_sri'] );
+		$this->assertContains( 'https://cdn.example.com/unprotected.js', $finding->evidence->get( 'missing_sri' ) );
 	}
 
 	public function test_null_page_asset_tags_returns_skipped(): void {

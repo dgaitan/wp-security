@@ -23,7 +23,7 @@ final class Finding {
 	 * @param string  $title          Short headline shown in the UI.
 	 * @param string  $description    Plain-language explanation of what was found.
 	 * @param string  $recommendation Concrete action the site owner should take.
-	 * @param array<string, mixed> $evidence Structured detail surfaced in the evidence table.
+	 * @param Evidence $evidence     Structured detail surfaced in the evidence table.
 	 * @param string|null $docsUrl    Link to further documentation.
 	 */
 	public function __construct(
@@ -33,7 +33,7 @@ final class Finding {
 		public readonly string $title,
 		public readonly string $description,
 		public readonly string $recommendation,
-		public readonly array $evidence = [],
+		public readonly Evidence $evidence = new Evidence(),
 		public readonly ?string $docsUrl = null,
 	) {}
 
@@ -64,7 +64,7 @@ final class Finding {
 			'title'          => $this->title,
 			'description'    => $this->description,
 			'recommendation' => $this->recommendation,
-			'evidence'       => $this->evidence,
+			'evidence'       => $this->evidence->toArray(),
 			'docs_url'       => $this->docsUrl,
 		];
 	}
@@ -93,8 +93,7 @@ final class Finding {
 	 * @param array<string, mixed> $data
 	 */
 	public static function fromArray( array $data ): self {
-		/** @var array<string, mixed> $evidence */
-		$evidence = is_array( $data['evidence'] ?? null ) ? $data['evidence'] : [];
+		$evidence = Evidence::from( $data['evidence'] ?? null );
 		$docsUrl  = $data['docs_url'] ?? null;
 
 		return new self(

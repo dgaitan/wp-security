@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -45,10 +46,10 @@ class DiskSpaceCheck implements Check {
 
 		$freeBytes  = (int) $free;
 		$totalBytes = null !== $total && false !== $total ? (int) $total : 0;
-		$evidence   = [
-			'free_mb'  => round( $freeBytes / ( 1024 * 1024 ), 1 ),
-			'total_mb' => $totalBytes > 0 ? round( $totalBytes / ( 1024 * 1024 ), 1 ) : null,
-		];
+		$freeMb     = round( $freeBytes / ( 1024 * 1024 ), 1 );
+		$evidence   = ( new Evidence() )
+			->add( 'free_mb', $freeMb )
+			->add( 'total_mb', $totalBytes > 0 ? round( $totalBytes / ( 1024 * 1024 ), 1 ) : null );
 
 		if ( $freeBytes < self::CRITICAL_BYTES ) {
 			return new Finding(
@@ -80,7 +81,7 @@ class DiskSpaceCheck implements Check {
 			sprintf(
 				/* translators: %s: free disk space in MB */
 				__( '%s MB of free disk space available.', 'wp-security' ),
-				number_format( $evidence['free_mb'] )
+				number_format( $freeMb )
 			)
 		);
 	}

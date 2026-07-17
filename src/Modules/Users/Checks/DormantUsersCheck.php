@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Users\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -62,7 +63,7 @@ class DormantUsersCheck implements Check {
 			title:          $this->label(),
 			description:    $message,
 			recommendation: __( 'Review dormant accounts and disable or delete any that are no longer needed. Dormant accounts are a common vector for unauthorized access if credentials have been compromised.', 'wp-security' ),
-			evidence:       [ 'dormant_user_count' => $dormantCount ],
+			evidence:       ( new Evidence() )->add( 'dormant_user_count', $dormantCount ),
 		);
 	}
 }

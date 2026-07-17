@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\PluginsThemes\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -130,10 +131,9 @@ class OutdatedJsLibraryCheck implements Check {
 					$names
 				),
 				recommendation: __( 'Update the flagged JavaScript libraries to a patched version.', 'wp-security' ),
-				evidence:       [
-					'outdated'        => $outdated,
-					'version_unknown' => $versionUnknown,
-				],
+				evidence:       ( new Evidence() )
+					->add( 'outdated', $outdated )
+					->add( 'version_unknown', $versionUnknown ),
 			);
 		}
 
@@ -145,7 +145,7 @@ class OutdatedJsLibraryCheck implements Check {
 				title:          $this->label(),
 				description:    __( 'No known-vulnerable JavaScript library versions were detected. Some recognized libraries had no parseable version string and could not be fully verified.', 'wp-security' ),
 				recommendation: '',
-				evidence:       [ 'version_unknown' => $versionUnknown ],
+				evidence:       ( new Evidence() )->add( 'version_unknown', $versionUnknown ),
 			);
 		}
 

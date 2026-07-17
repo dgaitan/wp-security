@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace WPSecurity\Persistence;
 
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use wpdb;
 
@@ -131,7 +132,7 @@ class FindingRepository {
 		$evidence = [];
 		if ( ! empty( $row['evidence'] ) && is_string( $row['evidence'] ) ) {
 			$decoded  = json_decode( $row['evidence'], true );
-			$evidence = is_array( $decoded ) ? $decoded : [];
+			$evidence = Evidence::from( is_array( $decoded ) ? $decoded : [] )->toArray();
 		}
 
 		return [

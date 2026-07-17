@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Seo\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -48,7 +49,7 @@ class RobotsTxtCheck implements Check {
 			/* translators: %d: HTTP status code */
 			description:    sprintf( __( 'robots.txt returned HTTP %d. Search engines expect a 200 response.', 'wp-security' ), $status ),
 			recommendation: __( 'Ensure a valid robots.txt file is accessible at the root of your domain.', 'wp-security' ),
-			evidence:       [ 'http_status' => $status ],
+			evidence:       ( new Evidence() )->add( 'http_status', $status ),
 		);
 	}
 }

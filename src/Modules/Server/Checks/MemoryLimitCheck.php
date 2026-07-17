@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Server\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -56,10 +57,9 @@ class MemoryLimitCheck implements Check {
 				/* translators: %s: memory limit string such as "32M" */
 				description:    sprintf( __( 'PHP memory limit is %s, which is below the recommended 64 MB.', 'wp-security' ), $raw ),
 				recommendation: __( 'Set memory_limit to at least 64M in php.ini or wp-config.php (define WP_MEMORY_LIMIT).', 'wp-security' ),
-				evidence:       [
-					'current'             => $raw,
-					'recommended_minimum' => '64M',
-				],
+				evidence:       ( new Evidence() )
+					->add( 'current', $raw )
+					->add( 'recommended_minimum', '64M' ),
 			);
 		}
 

@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Performance\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -56,7 +57,7 @@ class CompressionCheck implements Check {
 			title:          $this->label(),
 			description:    __( 'HTTP compression (GZIP or Brotli) is not enabled.', 'wp-security' ),
 			recommendation: __( 'Enable GZIP or Brotli compression in your server or via a caching plugin to reduce page weight and improve load time.', 'wp-security' ),
-			evidence:       [ 'content_encoding' => '' === $encoding ? 'none' : $encoding ],
+			evidence:       ( new Evidence() )->add( 'content_encoding', '' === $encoding ? 'none' : $encoding ),
 		);
 	}
 }

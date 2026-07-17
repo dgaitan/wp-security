@@ -96,7 +96,7 @@ final class CookieSecurityCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertContains( 'insecure_cookie', $finding->evidence['insecure_cookies'] );
+		$this->assertContains( 'insecure_cookie', $finding->evidence->get( 'insecure_cookies' ) );
 	}
 
 	public function test_weak_samesite_only_returns_warn_medium(): void {
@@ -116,7 +116,7 @@ final class CookieSecurityCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertContains( 'partial_cookie', $finding->evidence['weak_samesite'] );
+		$this->assertContains( 'partial_cookie', $finding->evidence->get( 'weak_samesite' ) );
 	}
 
 	public function test_no_cookies_observed_returns_pass_with_caveat(): void {

@@ -138,8 +138,8 @@ final class SecurityHeadersCheckTest extends TestCase {
 		$context = new MockContext( values: [ 'response_headers' => $headers ] );
 		$finding = $this->check->run( $context );
 
-		$this->assertArrayHasKey( 'missing', $finding->evidence );
-		$this->assertArrayHasKey( 'content-security-policy', $finding->evidence['missing'] );
+		$this->assertTrue( $finding->evidence->has( 'missing' ) );
+		$this->assertArrayHasKey( 'content-security-policy', $finding->evidence->get( 'missing' ) );
 	}
 
 	public function test_weak_csp_with_headers_present_returns_warn_medium(): void {
@@ -150,8 +150,8 @@ final class SecurityHeadersCheckTest extends TestCase {
 
 		$this->assertSame( Status::WARN, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertSame( [], $finding->evidence['missing'] );
-		$this->assertContains( 'unsafe-inline', $finding->evidence['csp_weaknesses'] );
-		$this->assertContains( 'wildcard-default-src', $finding->evidence['csp_weaknesses'] );
+		$this->assertSame( [], $finding->evidence->get( 'missing' ) );
+		$this->assertContains( 'unsafe-inline', $finding->evidence->get( 'csp_weaknesses' ) );
+		$this->assertContains( 'wildcard-default-src', $finding->evidence->get( 'csp_weaknesses' ) );
 	}
 }

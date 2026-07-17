@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\CoreIntegrity\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -96,7 +97,7 @@ class CoreFilesCheck implements Check {
 					$count
 				),
 			recommendation: __( 'Reinstall WordPress core via Dashboard → Updates or WP-CLI ("wp core download --force"). Investigate the changes — they may indicate malware or tampering.', 'wp-security' ),
-			evidence:       [ 'modified_files' => $modified ],
+			evidence:       ( new Evidence() )->add( 'modified_files', $modified ),
 		);
 	}
 }

@@ -101,9 +101,9 @@ final class PageTitleCheckTest extends TestCase {
 		$ctx     = new MockContext( values: [ 'homepage_html' => $html ] );
 		$finding = $this->check->run( $ctx );
 
-		$this->assertArrayHasKey( 'title', $finding->evidence );
-		$this->assertArrayHasKey( 'length', $finding->evidence );
-		$this->assertSame( 'Hi', $finding->evidence['title'] );
-		$this->assertSame( 2, $finding->evidence['length'] );
+		$this->assertTrue( $finding->evidence->has( 'title' ) );
+		$this->assertTrue( $finding->evidence->has( 'length' ) );
+		$this->assertSame( 'Hi', $finding->evidence->get( 'title' ) );
+		$this->assertSame( 2, $finding->evidence->get( 'length' ) );
 	}
 }

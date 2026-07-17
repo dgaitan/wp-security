@@ -72,6 +72,6 @@ final class RobotsTxtCheckTest extends TestCase {
 		$ctx     = new MockContext( values: [ 'robots_txt_status' => 403 ] );
 		$finding = $this->check->run( $ctx );
 
-		$this->assertSame( 403, $finding->evidence['http_status'] );
+		$this->assertSame( 403, $finding->evidence->get( 'http_status' ) );
 	}
 }

@@ -6,6 +6,7 @@ namespace WPSecurity\Modules\Headers\Checks;
 
 use WPSecurity\Contracts\Check;
 use WPSecurity\Contracts\Context;
+use WPSecurity\Domain\Evidence;
 use WPSecurity\Domain\Finding;
 use WPSecurity\Domain\Severity;
 use WPSecurity\Domain\Status;
@@ -79,10 +80,9 @@ class CookieSecurityCheck implements Check {
 					implode( ', ', $insecureCookies )
 				),
 				recommendation: __( 'Set the Secure and HttpOnly attributes on all cookies so they cannot be transmitted over plain HTTP or read by JavaScript.', 'wp-security' ),
-				evidence:       [
-					'insecure_cookies' => $insecureCookies,
-					'weak_samesite'    => $weakSameSite,
-				],
+				evidence:       ( new Evidence() )
+					->add( 'insecure_cookies', $insecureCookies )
+					->add( 'weak_samesite', $weakSameSite ),
 			);
 		}
 
@@ -98,7 +98,7 @@ class CookieSecurityCheck implements Check {
 					implode( ', ', $weakSameSite )
 				),
 				recommendation: __( 'Set SameSite=Strict or SameSite=Lax on cookies that do not need cross-site delivery.', 'wp-security' ),
-				evidence:       [ 'weak_samesite' => $weakSameSite ],
+				evidence:       ( new Evidence() )->add( 'weak_samesite', $weakSameSite ),
 			);
 		}
 

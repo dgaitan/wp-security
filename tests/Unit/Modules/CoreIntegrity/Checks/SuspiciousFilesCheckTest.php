@@ -110,8 +110,8 @@ final class SuspiciousFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::FAIL, $finding->status );
 		$this->assertSame( Severity::CRITICAL, $finding->severity );
-		$this->assertArrayHasKey( 'php_in_uploads', $finding->evidence );
-		$this->assertStringContainsString( 'shell.php', implode( ' ', $finding->evidence['php_in_uploads'] ) );
+		$this->assertTrue( $finding->evidence->has( 'php_in_uploads' ) );
+		$this->assertStringContainsString( 'shell.php', implode( ' ', $finding->evidence->get( 'php_in_uploads' ) ) );
 	}
 
 	public function test_blacklisted_filename_returns_fail_critical(): void {
@@ -121,7 +121,7 @@ final class SuspiciousFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::FAIL, $finding->status );
 		$this->assertSame( Severity::CRITICAL, $finding->severity );
-		$this->assertArrayHasKey( 'blacklisted', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'blacklisted' ) );
 	}
 
 	public function test_blacklisted_extension_returns_fail_critical(): void {
@@ -131,7 +131,7 @@ final class SuspiciousFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::FAIL, $finding->status );
 		$this->assertSame( Severity::CRITICAL, $finding->severity );
-		$this->assertArrayHasKey( 'blacklisted', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'blacklisted' ) );
 	}
 
 	public function test_double_extension_returns_fail_high(): void {
@@ -142,7 +142,7 @@ final class SuspiciousFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::FAIL, $finding->status );
 		$this->assertSame( Severity::HIGH, $finding->severity );
-		$this->assertArrayHasKey( 'double_extension', $finding->evidence );
+		$this->assertTrue( $finding->evidence->has( 'double_extension' ) );
 	}
 
 	public function test_unexpected_extension_in_theme_returns_fail_medium(): void {
@@ -152,8 +152,8 @@ final class SuspiciousFilesCheckTest extends TestCase {
 
 		$this->assertSame( Status::FAIL, $finding->status );
 		$this->assertSame( Severity::MEDIUM, $finding->severity );
-		$this->assertArrayHasKey( 'theme_violations', $finding->evidence );
-		$this->assertStringContainsString( 'binary.exe', implode( ' ', $finding->evidence['theme_violations'] ) );
+		$this->assertTrue( $finding->evidence->has( 'theme_violations' ) );
+		$this->assertStringContainsString( 'binary.exe', implode( ' ', $finding->evidence->get( 'theme_violations' ) ) );
 	}
 
 	public function test_expected_theme_extensions_are_not_flagged(): void {
