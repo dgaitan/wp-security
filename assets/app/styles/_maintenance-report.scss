@@ -1,0 +1,70 @@
+@use 'variables' as *;
+
+// ---------------------------------------------------------------------------
+// Maintenance Report route — updates applied, backlog, notes.
+// ---------------------------------------------------------------------------
+
+.wpsec-maintenance-report__section {
+	margin-bottom: $wpsec-spacing-xl;
+}
+
+.wpsec-maintenance-report__empty {
+	color: $wpsec-color-muted;
+	font-style: italic;
+}
+
+.wpsec-remediation-log-table {
+	width: 100%;
+	border-collapse: collapse;
+
+	th,
+	td {
+		text-align: left;
+		padding: $wpsec-spacing-sm $wpsec-spacing-md;
+		border-bottom: 1px solid $wpsec-color-border;
+		font-size: $wpsec-font-base;
+	}
+
+	th {
+		color: $wpsec-color-muted;
+		font-weight: 600;
+	}
+
+	td[data-status='success'] {
+		color: $wpsec-color-grade-a;
+	}
+
+	td[data-status='failed'] {
+		color: $wpsec-color-grade-d;
+	}
+
+	td[data-status='skipped'],
+	td[data-status='queued'] {
+		color: $wpsec-color-muted;
+	}
+}
+
+.wpsec-maintenance-notes-form {
+	max-width: 600px;
+
+	textarea,
+	input {
+		max-width: 100%;
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Functional QA — contact form test section, above the findings list.
+// ---------------------------------------------------------------------------
+
+.wpsec-functional-qa__contact-form-test {
+	background: $wpsec-color-white;
+	border: 1px solid $wpsec-color-border;
+	border-radius: $wpsec-radius-md;
+	padding: $wpsec-spacing-md;
+	margin-bottom: $wpsec-spacing-lg;
+
+	h2 {
+		margin-top: 0;
+	}
+}

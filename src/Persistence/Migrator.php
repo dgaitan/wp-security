@@ -10,10 +10,11 @@ use wpdb;
  * Creates and upgrades the plugin's custom database tables using dbDelta().
  *
  * Tables:
- *   {prefix}_wpsec_scan_runs        — one row per scan execution
- *   {prefix}_wpsec_findings         — findings linked to a run
- *   {prefix}_wpsec_logins           — last-login tracking per user
- *   {prefix}_wpsec_remediation_log  — audit trail of applied remediation actions (v2)
+ *   {prefix}_wpsec_scan_runs         — one row per scan execution
+ *   {prefix}_wpsec_findings          — findings linked to a run
+ *   {prefix}_wpsec_logins            — last-login tracking per user
+ *   {prefix}_wpsec_remediation_log   — audit trail of applied remediation actions (v2)
+ *   {prefix}_wpsec_maintenance_notes — admin-authored Maintenance Report notes (v3)
  *
  * The current schema version is stored in the `wp_security_schema_version`
  * option.  run() is a no-op when the stored version equals SCHEMA_VERSION,
@@ -21,7 +22,7 @@ use wpdb;
  */
 class Migrator {
 
-	public const SCHEMA_VERSION = 2;
+	public const SCHEMA_VERSION = 3;
 
 	public const OPTION_VERSION = 'wp_security_schema_version';
 
@@ -55,11 +56,12 @@ class Migrator {
 	 * @return array<int, string>
 	 */
 	public function tableDefinitions(): array {
-		$charset_collate = $this->wpdb->get_charset_collate();
-		$runs            = $this->wpdb->prefix . 'wpsec_scan_runs';
-		$findings        = $this->wpdb->prefix . 'wpsec_findings';
-		$logins          = $this->wpdb->prefix . 'wpsec_logins';
-		$remediationLog  = $this->wpdb->prefix . 'wpsec_remediation_log';
+		$charset_collate  = $this->wpdb->get_charset_collate();
+		$runs             = $this->wpdb->prefix . 'wpsec_scan_runs';
+		$findings         = $this->wpdb->prefix . 'wpsec_findings';
+		$logins           = $this->wpdb->prefix . 'wpsec_logins';
+		$remediationLog   = $this->wpdb->prefix . 'wpsec_remediation_log';
+		$maintenanceNotes = $this->wpdb->prefix . 'wpsec_maintenance_notes';
 
 		return [
 			"CREATE TABLE {$runs} (
@@ -118,6 +120,18 @@ class Migrator {
 				KEY action_status (action_id, status),
 				KEY module_id (module_id),
 				KEY batch_id (batch_id)
+			) {$charset_collate};",
+
+			"CREATE TABLE {$maintenanceNotes} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				run_id bigint(20) unsigned DEFAULT NULL,
+				time_spent_minutes int(10) unsigned DEFAULT NULL,
+				client_notes longtext DEFAULT NULL,
+				follow_up_notes longtext DEFAULT NULL,
+				created_by bigint(20) unsigned NOT NULL,
+				created_at datetime NOT NULL,
+				PRIMARY KEY  (id),
+				KEY run_id (run_id)
 			) {$charset_collate};",
 		];
 	}

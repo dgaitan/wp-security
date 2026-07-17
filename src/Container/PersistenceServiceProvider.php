@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace WPSecurity\Container;
 
 use WPSecurity\Persistence\FindingRepository;
+use WPSecurity\Persistence\MaintenanceNotesRepository;
 use WPSecurity\Persistence\Migrator;
 use WPSecurity\Persistence\RemediationLogRepository;
 use WPSecurity\Persistence\ScanRunRepository;
@@ -47,6 +48,14 @@ final class PersistenceServiceProvider extends ServiceProvider {
 			static function (): RemediationLogRepository {
 				global $wpdb;
 				return new RemediationLogRepository( $wpdb );
+			}
+		);
+
+		$this->container->singleton(
+			MaintenanceNotesRepository::class,
+			static function (): MaintenanceNotesRepository {
+				global $wpdb;
+				return new MaintenanceNotesRepository( $wpdb );
 			}
 		);
 	}

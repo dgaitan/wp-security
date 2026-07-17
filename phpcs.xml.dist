@@ -84,12 +84,21 @@
     <rule ref="Generic.Files.OneObjectStructurePerFile">
         <exclude-pattern>tests/stubs/*</exclude-pattern>
     </rule>
+    <rule ref="Universal.Files.SeparateFunctionsFromOO">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
     <rule ref="PEAR.NamingConventions.ValidClassName">
         <exclude-pattern>tests/stubs/*</exclude-pattern>
     </rule>
     <rule ref="WordPress.WP.AlternativeFunctions">
         <exclude-pattern>tests/stubs/*</exclude-pattern>
         <!-- Unit tests run without WordPress so WP_Filesystem / wp_delete_file() are unavailable. -->
+        <exclude-pattern>tests/Unit/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP.EnqueuedResources">
+        <!-- False positive: this sniff text-matches "<script src=" anywhere in
+             a file, including PHPUnit test-fixture HTML strings that are never
+             echoed — not real plugin output that should go through wp_enqueue_script(). -->
         <exclude-pattern>tests/Unit/*</exclude-pattern>
     </rule>
 

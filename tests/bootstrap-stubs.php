@@ -12,3 +12,4 @@
 declare( strict_types=1 );
 
 require_once __DIR__ . '/stubs/wordpress-stubs.php';
+require_once __DIR__ . '/stubs/third-party-plugins.stub.php';

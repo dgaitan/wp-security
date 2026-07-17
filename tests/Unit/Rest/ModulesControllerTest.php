@@ -20,6 +20,12 @@
  *   When ingestExternal() is called
  *   Then the response status is 204
  *   And only the valid finding is persisted
+ *
+ * Scenario: POST with an unregistered module_id returns an error — Sprint 10 hardening
+ *   Given a POST request with module_id = 'not-a-real-module'
+ *   When ingestExternal() is called
+ *   Then a WP_Error is returned instead of a 204 response
+ *   And no scan run is created
  */
 
 declare( strict_types=1 );
@@ -27,8 +33,11 @@ declare( strict_types=1 );
 namespace WPSecurity\Tests\Unit\Rest;
 
 use PHPUnit\Framework\TestCase;
+use WP_Error;
 use WP_REST_Request;
 use WPSecurity\Admin\ModuleRegistry;
+use WPSecurity\Contracts\Check;
+use WPSecurity\Contracts\Module;
 use WPSecurity\Persistence\FindingRepository;
 use WPSecurity\Persistence\ScanRunRepository;
 use WPSecurity\Rest\ModulesController;
@@ -52,6 +61,31 @@ final class ModulesControllerTest extends TestCase {
 		$GLOBALS['wp_security_test_filters']               = [];
 		$GLOBALS['wp_security_test_rest_routes']           = [];
 		$GLOBALS['wp_security_test_can']['manage_options'] = true;
+
+		// ingestExternal() requires the target module_id to be registered
+		// (Sprint 10 hardening) — register a minimal 'accessibility' double
+		// so existing scenarios below keep exercising the success path.
+		add_filter(
+			'wp_security/modules',
+			static function ( array $modules ): array {
+				$modules[] = new class() implements Module {
+					public function id(): string {
+						return 'accessibility';
+					}
+					public function label(): string {
+						return 'Accessibility';
+					}
+					public function icon(): string {
+						return 'dashicons-universal-access-alt';
+					}
+					/** @return iterable<Check> */
+					public function checks(): iterable {
+						return [];
+					}
+				};
+				return $modules;
+			}
+		);
 	}
 
 	protected function tearDown(): void {
@@ -153,5 +187,25 @@ final class ModulesControllerTest extends TestCase {
 		$stored = $this->findingRepo->forRun( 1 );
 
 		$this->assertCount( 1, $stored );
+	}
+
+	public function test_ingest_external_rejects_unregistered_module_id(): void {
+		$request = new WP_REST_Request();
+		$request->set_param( 'module_id', 'not_a_real_module' );
+		$request->set_param( 'findings', [] );
+
+		$response = $this->controller()->ingestExternal( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $response );
+	}
+
+	public function test_ingest_external_does_not_create_a_run_for_unregistered_module(): void {
+		$request = new WP_REST_Request();
+		$request->set_param( 'module_id', 'not_a_real_module' );
+		$request->set_param( 'findings', [] );
+
+		$this->controller()->ingestExternal( $request );
+
+		$this->assertNull( $this->scanRunRepo->find( 1 ) );
 	}
 }

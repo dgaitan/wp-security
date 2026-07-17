@@ -40,4 +40,16 @@ export const MODULES = [
 		icon: 'dashicons-universal-access-alt',
 	},
 	{ id: 'seo', label: 'SEO', path: '/seo', icon: 'dashicons-search' },
+	{
+		id: 'functional_qa',
+		label: 'Functional QA',
+		path: '/functional-qa',
+		icon: 'dashicons-yes-alt',
+	},
+	{
+		id: 'marketing_analytics',
+		label: 'Marketing & Analytics',
+		path: '/marketing-analytics',
+		icon: 'dashicons-megaphone',
+	},
 ];

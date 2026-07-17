@@ -643,9 +643,32 @@ if ( ! function_exists( 'esc_attr' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_html' ) ) {
+	function esc_html( string $text ): string {
+		return htmlspecialchars( $text, ENT_QUOTES );
+	}
+}
+
 if ( ! function_exists( 'get_current_user_id' ) ) {
 	function get_current_user_id(): int {
 		return (int) ( $GLOBALS['wp_security_test_current_user_id'] ?? 1 );
+	}
+}
+
+if ( ! function_exists( 'get_userdata' ) ) {
+	/**
+	 * Configurable via $GLOBALS['wp_security_test_users'][$userId] = 'Display Name'.
+	 * Returns false for any user id not explicitly registered, matching real
+	 * WordPress behaviour for a deleted/nonexistent user.
+	 */
+	function get_userdata( int $userId ) {
+		$name = $GLOBALS['wp_security_test_users'][ $userId ] ?? null;
+		if ( null === $name ) {
+			return false;
+		}
+		$user               = new \stdClass();
+		$user->display_name = $name;
+		return $user;
 	}
 }
 

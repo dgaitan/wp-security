@@ -59,6 +59,12 @@ Never add a mutating side effect to a `Check`. If a new action needs to change s
 
 ---
 
+## Instance- and theme-agnostic — no external runtime dependency (Sprint 10)
+
+The plugin must work identically on any WordPress install out of the box: no Node/Puppeteer/browser runner, no per-site credential setup beyond what WordPress itself provides, no dependency on a specific theme's menu registration. This is why the Functional QA module's site crawler (`ScanContext`) parses rendered `<nav>`/`<footer>` HTML instead of calling `wp_get_nav_menu_items()` against a theme-specific location, and why broken-link/media checks use WordPress's own `wp_remote_head()`/`wp_remote_get()` HTTP API rather than a headless browser. Checks that genuinely require JavaScript execution (console errors, confirming a tag fires at runtime, a rendered mobile-viewport check) are a real, acknowledged limit of this approach — they're deferred as an optional future enhancement, not worked around with an external dependency this plugin otherwise doesn't need.
+
+---
+
 ## DRY — shared primitives
 
 | What | Where | Rule |

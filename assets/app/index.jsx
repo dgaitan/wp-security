@@ -26,6 +26,9 @@ import { Users } from './routes/Users';
 import { Performance } from './routes/Performance';
 import { Accessibility } from './routes/Accessibility';
 import { Seo } from './routes/Seo';
+import { FunctionalQa } from './routes/FunctionalQa';
+import { MarketingAnalytics } from './routes/MarketingAnalytics';
+import { MaintenanceReport } from './routes/MaintenanceReport';
 import { Settings } from './routes/Settings';
 import './styles/index.scss';
 
@@ -75,6 +78,9 @@ const router = createHashRouter( [
 			{ path: 'performance', element: <Performance /> },
 			{ path: 'accessibility', element: <Accessibility /> },
 			{ path: 'seo', element: <Seo /> },
+			{ path: 'functional-qa', element: <FunctionalQa /> },
+			{ path: 'marketing-analytics', element: <MarketingAnalytics /> },
+			{ path: 'maintenance-report', element: <MaintenanceReport /> },
 			{ path: 'settings', element: <Settings /> },
 		],
 	},

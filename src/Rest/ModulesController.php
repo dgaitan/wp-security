@@ -100,8 +100,15 @@ class ModulesController extends AbstractController {
 		return $this->respond( $this->findingRepository->latestByModule( $id ) );
 	}
 
-	public function ingestExternal( WP_REST_Request $request ): WP_REST_Response {
+	public function ingestExternal( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$moduleId = sanitize_key( (string) ( $request->get_param( 'module_id' ) ?? 'accessibility' ) );
+
+		if ( ! $this->registry->has( $moduleId ) ) {
+			return $this->notFound(
+				/* translators: %s: module ID */
+				sprintf( __( 'Module "%s" not found.', 'wp-security' ), esc_html( $moduleId ) )
+			);
+		}
 
 		/** @var mixed $rawFindings */
 		$rawFindings = $request->get_param( 'findings' );

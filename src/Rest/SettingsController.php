@@ -41,29 +41,55 @@ class SettingsController extends AbstractController {
 					'callback'            => [ $this, 'update' ],
 					'permission_callback' => [ $this, 'permissionCheck' ],
 					'args'                => [
-						'vuln_advisor_provider'          => [
+						'vuln_advisor_provider'           => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_key',
 						],
-						'wpscan_api_key'                 => [
+						'wpscan_api_key'                  => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_text_field',
 						],
-						'scan_frequency'                 => [
+						'scan_frequency'                  => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_key',
 						],
-						'alert_email'                    => [
+						'alert_email'                     => [
 							'type'              => 'string',
 							'sanitize_callback' => 'sanitize_email',
 						],
-						'slack_webhook_url'              => [
+						'slack_webhook_url'               => [
 							'type'              => 'string',
 							'sanitize_callback' => 'esc_url_raw',
 						],
-						'enable_core_update_remediation' => [
+						'enable_core_update_remediation'  => [
 							'type'              => 'boolean',
 							'sanitize_callback' => 'rest_sanitize_boolean',
+						],
+						'cta_urls'                        => [
+							'type' => 'array',
+						],
+						'key_landing_pages'               => [
+							'type' => 'array',
+						],
+						'search_url'                      => [
+							'type'              => 'string',
+							'sanitize_callback' => 'esc_url_raw',
+						],
+						'expect_gtm'                      => [
+							'type'              => 'boolean',
+							'sanitize_callback' => 'rest_sanitize_boolean',
+						],
+						'expect_ga4'                      => [
+							'type'              => 'boolean',
+							'sanitize_callback' => 'rest_sanitize_boolean',
+						],
+						'expect_meta_pixel'               => [
+							'type'              => 'boolean',
+							'sanitize_callback' => 'rest_sanitize_boolean',
+						],
+						'cookie_consent_custom_signature' => [
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
 						],
 					],
 				],
@@ -128,9 +154,88 @@ class SettingsController extends AbstractController {
 			$current['enable_core_update_remediation'] = rest_sanitize_boolean( (bool) $enableCoreRemediation );
 		}
 
+		$ctaUrls = $request->get_param( 'cta_urls' );
+		if ( null !== $ctaUrls ) {
+			$current['cta_urls'] = $this->sanitizeUrlLabelList( $ctaUrls );
+		}
+
+		$landingPages = $request->get_param( 'key_landing_pages' );
+		if ( null !== $landingPages ) {
+			$current['key_landing_pages'] = $this->sanitizeUrlLabelList( $landingPages );
+		}
+
+		$searchUrl = $request->get_param( 'search_url' );
+		if ( null !== $searchUrl ) {
+			$clean = esc_url_raw( (string) $searchUrl );
+			if ( '' !== $clean ) {
+				$current['search_url'] = $clean;
+			} else {
+				unset( $current['search_url'] );
+			}
+		}
+
+		$expectGtm = $request->get_param( 'expect_gtm' );
+		if ( null !== $expectGtm ) {
+			$current['expect_gtm'] = rest_sanitize_boolean( (bool) $expectGtm );
+		}
+
+		$expectGa4 = $request->get_param( 'expect_ga4' );
+		if ( null !== $expectGa4 ) {
+			$current['expect_ga4'] = rest_sanitize_boolean( (bool) $expectGa4 );
+		}
+
+		$expectMetaPixel = $request->get_param( 'expect_meta_pixel' );
+		if ( null !== $expectMetaPixel ) {
+			$current['expect_meta_pixel'] = rest_sanitize_boolean( (bool) $expectMetaPixel );
+		}
+
+		$cookieSignature = $request->get_param( 'cookie_consent_custom_signature' );
+		if ( null !== $cookieSignature ) {
+			$clean = sanitize_text_field( (string) $cookieSignature );
+			if ( '' !== $clean ) {
+				$current['cookie_consent_custom_signature'] = $clean;
+			} else {
+				unset( $current['cookie_consent_custom_signature'] );
+			}
+		}
+
 		update_option( self::OPTION_KEY, $current, false );
 
 		return $this->respond( null, 204 );
+	}
+
+	/**
+	 * Sanitizes a REST-submitted list of {label, url} entries — used by both
+	 * `cta_urls` and `key_landing_pages`, which share the same shape.
+	 * Entries missing a valid url are dropped rather than stored empty.
+	 *
+	 * @param mixed $value
+	 * @return array<int, array{label: string, url: string}>
+	 */
+	private function sanitizeUrlLabelList( mixed $value ): array {
+		if ( ! is_array( $value ) ) {
+			return [];
+		}
+
+		$result = [];
+
+		foreach ( $value as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$url = isset( $item['url'] ) ? esc_url_raw( (string) $item['url'] ) : '';
+			if ( '' === $url ) {
+				continue;
+			}
+
+			$result[] = [
+				'label' => isset( $item['label'] ) ? sanitize_text_field( (string) $item['label'] ) : '',
+				'url'   => $url,
+			];
+		}
+
+		return $result;
 	}
 
 	private function maskApiKey( string $key ): string {

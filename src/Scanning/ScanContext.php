@@ -16,6 +16,20 @@ use WPSecurity\VulnerabilityAdvisor\VulnerabilityAdvisor;
  */
 class ScanContext implements Context {
 
+	/**
+	 * Site-crawl tuning. All bounded — never an unbounded fetch/link-check loop.
+	 * Everything below runs inside an Action Scheduler job (see ScanManager),
+	 * not a synchronous HTTP request, so these are generous relative to the
+	 * ~10s timeouts used elsewhere in this class, but still capped so one
+	 * module job can't run indefinitely against a very large site.
+	 */
+	private const CRAWL_MAX_PAGES       = 20;
+	private const CRAWL_REQUEST_TIMEOUT = 8;
+	private const CRAWL_NAV_LINK_CAP    = 15;
+	private const CRAWL_FOOTER_LINK_CAP = 20;
+	private const CRAWL_LINK_CHECK_CAP  = 30;
+	private const CRAWL_MEDIA_CHECK_CAP = 20;
+
 	/** @var array<string, mixed> */
 	private array $resolved = [];
 
@@ -23,6 +37,10 @@ class ScanContext implements Context {
 	private mixed $loopbackResponse  = null;
 	private bool $loopbackResolved   = false;
 	private float $loopbackElapsedMs = 0.0;
+
+	/** @var array<int, array{url: string, html: string}>|null */
+	private ?array $crawledPagesCache  = null;
+	private bool $crawledPagesResolved = false;
 
 	public function wpRootPath(): string {
 		return ABSPATH;
@@ -86,6 +104,19 @@ class ScanContext implements Context {
 	 *   'page_asset_tags'         → array<int,array{type:string,url:string,integrity:?string,crossorigin:?string,external:bool}>|null — <script src>/<link rel="stylesheet" href> tags parsed from homepage_html
 	 *   'https_redirect_chain'    → array<int,array{url:string,status:int,scheme:string}>|null — hop-by-hop trace of an explicit http:// request to the home host, redirects followed manually (redirection=>0)
 	 *   'tls_certificate'         → array{valid_from:int,valid_to:int,days_until_expiry:int,subject_cn:string,issuer_cn:string,self_signed:bool}|null — peer certificate parsed from a raw TLS handshake to the home host
+	 *   'homepage_http_status'    → int|null — raw HTTP status code from the shared loopback GET, even on non-200 (unlike homepage_html, which is null on any non-200)
+	 *   'crawled_page_urls'       → array<int,string>|null — URLs of homepage + published pages/posts successfully crawled (bounded, see CRAWL_MAX_PAGES); no theme or menu API involved
+	 *   'nav_links'               → array<int,array{url:string,text:string}>|null — links parsed out of all <nav>...</nav> blocks in homepage_html; theme-agnostic (no wp_get_nav_menu_items())
+	 *   'footer_links'            → array<int,array{url:string,text:string}>|null — links parsed out of all <footer>...</footer> blocks in homepage_html
+	 *   'broken_internal_links'   → array<int,array{url:string,status:int,found_on:string}>|null — same-host links across crawled pages that returned a non-2xx/3xx status
+	 *   'broken_media'            → array<int,array{url:string,status:int,found_on:string}>|null — <img src> URLs across crawled pages that returned a non-2xx/3xx status
+	 *   'search_check_status'     → int|null — HTTP status for the configured (or default {home}/?s=test) search URL
+	 *   'cta_link_statuses'       → array<int,array{label:string,url:string,status:int}> — settings `cta_urls`, each checked; empty array when none configured (never null)
+	 *   'key_landing_page_statuses' → array<int,array{label:string,url:string,status:int}> — settings `key_landing_pages`, each checked; empty array when none configured (never null)
+	 *   'expect_gtm'              → bool — settings `expect_gtm`
+	 *   'expect_ga4'              → bool — settings `expect_ga4`
+	 *   'expect_meta_pixel'       → bool — settings `expect_meta_pixel`
+	 *   'cookie_consent_custom_signature' → string|null — settings `cookie_consent_custom_signature`, trimmed; null when unset
 	 *
 	 * @return mixed
 	 */
@@ -136,6 +167,19 @@ class ScanContext implements Context {
 			'page_asset_tags'         => $this->resolvePageAssetTags(),
 			'https_redirect_chain'    => $this->resolveHttpsRedirectChain(),
 			'tls_certificate'         => $this->resolveTlsCertificate(),
+			'homepage_http_status'    => $this->resolveHomepageHttpStatus(),
+			'crawled_page_urls'       => $this->resolveCrawledPageUrls(),
+			'nav_links'               => $this->resolveNavLinks(),
+			'footer_links'            => $this->resolveFooterLinks(),
+			'broken_internal_links'   => $this->resolveBrokenInternalLinks(),
+			'broken_media'            => $this->resolveBrokenMedia(),
+			'search_check_status'     => $this->resolveSearchCheckStatus(),
+			'cta_link_statuses'       => $this->resolveSettingsUrlListStatuses( 'cta_urls' ),
+			'key_landing_page_statuses' => $this->resolveSettingsUrlListStatuses( 'key_landing_pages' ),
+			'expect_gtm'              => $this->resolveSettingsBool( 'expect_gtm' ),
+			'expect_ga4'              => $this->resolveSettingsBool( 'expect_ga4' ),
+			'expect_meta_pixel'       => $this->resolveSettingsBool( 'expect_meta_pixel' ),
+			'cookie_consent_custom_signature' => $this->resolveCookieConsentCustomSignature(),
 			default                   => null,
 		};
 
@@ -848,5 +892,396 @@ class ScanContext implements Context {
 		}
 
 		return ( new TlsCertificateInspector() )->inspect( $host );
+	}
+
+	private function resolveHomepageHttpStatus(): ?int {
+		$response = $this->sharedLoopback();
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		return (int) wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
+	 * Crawls the homepage plus a bounded set of published pages/posts via
+	 * WP_Query — no settings, no external tooling, works identically on any
+	 * install. Shared by every crawl-derived key below (nav/footer links,
+	 * broken links/media) so the site is only fetched once per scan.
+	 *
+	 * @return array<int, array{url: string, html: string}>
+	 */
+	private function resolveCrawledPages(): array {
+		if ( $this->crawledPagesResolved ) {
+			return $this->crawledPagesCache ?? [];
+		}
+		$this->crawledPagesResolved = true;
+
+		$pages = [];
+
+		$homepageHtml = $this->resolveHomepageHtml();
+		if ( null !== $homepageHtml ) {
+			$pages[] = [
+				'url'  => $this->homeUrl(),
+				'html' => $homepageHtml,
+			];
+		}
+
+		if ( ! function_exists( 'get_posts' ) ) {
+			$this->crawledPagesCache = $pages;
+			return $pages;
+		}
+
+		// CRAWL_MAX_PAGES is 20 and $pages has at most one element (the
+		// homepage) at this point, so this is always a positive limit —
+		// get_posts() with posts_per_page <= 0 would mean "unlimited",
+		// which is what the subtraction guards against if that ever changes.
+		$remaining = self::CRAWL_MAX_PAGES - count( $pages );
+
+		/** @var array<int, int> $postIds */
+		$postIds = get_posts(
+			[
+				'post_type'      => [ 'page', 'post' ],
+				'post_status'    => 'publish',
+				'posts_per_page' => $remaining,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			]
+		);
+
+		foreach ( $postIds as $postId ) {
+			$url = get_permalink( $postId );
+			if ( ! is_string( $url ) || '' === $url ) {
+				continue;
+			}
+
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'     => self::CRAWL_REQUEST_TIMEOUT,
+					'sslverify'   => false,
+					'redirection' => 5,
+				]
+			);
+
+			if ( is_wp_error( $response ) ) {
+				continue;
+			}
+
+			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+				continue;
+			}
+
+			$pages[] = [
+				'url'  => $url,
+				'html' => wp_remote_retrieve_body( $response ),
+			];
+		}
+
+		$this->crawledPagesCache = $pages;
+		return $pages;
+	}
+
+	/** @return array<int, string>|null */
+	private function resolveCrawledPageUrls(): ?array {
+		$pages = $this->resolveCrawledPages();
+
+		if ( [] === $pages ) {
+			return null;
+		}
+
+		return array_column( $pages, 'url' );
+	}
+
+	/** @return array<int, array{url: string, text: string}>|null */
+	private function resolveNavLinks(): ?array {
+		$html = $this->resolveHomepageHtml();
+
+		if ( null === $html ) {
+			return null;
+		}
+
+		return $this->extractLinksFromHtml( $this->extractTagBlocks( $html, 'nav' ), self::CRAWL_NAV_LINK_CAP );
+	}
+
+	/** @return array<int, array{url: string, text: string}>|null */
+	private function resolveFooterLinks(): ?array {
+		$html = $this->resolveHomepageHtml();
+
+		if ( null === $html ) {
+			return null;
+		}
+
+		return $this->extractLinksFromHtml( $this->extractTagBlocks( $html, 'footer' ), self::CRAWL_FOOTER_LINK_CAP );
+	}
+
+	/**
+	 * Concatenates the inner content of every non-nested occurrence of a tag
+	 * (e.g. all <nav>...</nav> blocks) — semantic-HTML5 parsing, theme-agnostic
+	 * by design: no dependency on a theme's registered menu location.
+	 */
+	private function extractTagBlocks( string $html, string $tag ): string {
+		if ( ! preg_match_all( '/<' . $tag . '\b[^>]*>(.*?)<\/' . $tag . '>/is', $html, $matches ) ) {
+			return '';
+		}
+
+		return implode( "\n", $matches[1] );
+	}
+
+	/**
+	 * Extracts <a href> links from an HTML fragment, deduped by URL and
+	 * skipping in-page anchors / non-navigable schemes.
+	 *
+	 * @return array<int, array{url: string, text: string}>
+	 */
+	private function extractLinksFromHtml( string $html, int $cap ): array {
+		if ( '' === $html || ! preg_match_all( '/<a\b[^>]*\bhref=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/is', $html, $matches, PREG_SET_ORDER ) ) {
+			return [];
+		}
+
+		$links = [];
+		$seen  = [];
+
+		foreach ( $matches as $match ) {
+			$url = trim( $match[1] );
+
+			if ( '' === $url || str_starts_with( $url, '#' ) || str_starts_with( $url, 'javascript:' ) || str_starts_with( $url, 'mailto:' ) || str_starts_with( $url, 'tel:' ) ) {
+				continue;
+			}
+
+			if ( isset( $seen[ $url ] ) ) {
+				continue;
+			}
+			$seen[ $url ] = true;
+
+			$links[] = [
+				'url'  => $url,
+				'text' => trim( wp_strip_all_tags( $match[2] ) ),
+			];
+
+			if ( count( $links ) >= $cap ) {
+				break;
+			}
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Checks a single URL's reachability, preferring a HEAD request and
+	 * falling back to GET when the host doesn't support HEAD (405/501) —
+	 * the same "curl every link, confirm 200" approach requested for the
+	 * broken-link/media checks, using WordPress's own HTTP API.
+	 */
+	private function checkUrlStatus( string $url ): int {
+		$response = wp_remote_head(
+			$url,
+			[
+				'timeout'     => self::CRAWL_REQUEST_TIMEOUT,
+				'sslverify'   => false,
+				'redirection' => 5,
+			]
+		);
+
+		$code = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+
+		if ( is_wp_error( $response ) || 405 === $code || 501 === $code ) {
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'     => self::CRAWL_REQUEST_TIMEOUT,
+					'sslverify'   => false,
+					'redirection' => 5,
+				]
+			);
+			$code     = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+		}
+
+		return $code;
+	}
+
+	/**
+	 * @return array<int, array{url: string, status: int, found_on: string}>|null
+	 */
+	private function resolveBrokenInternalLinks(): ?array {
+		$pages = $this->resolveCrawledPages();
+
+		if ( [] === $pages ) {
+			return null;
+		}
+
+		$homeHost = strtolower( (string) wp_parse_url( $this->homeUrl(), PHP_URL_HOST ) );
+		$checked  = [];
+		$broken   = [];
+		$count    = 0;
+
+		foreach ( $pages as $page ) {
+			if ( $count >= self::CRAWL_LINK_CHECK_CAP ) {
+				break;
+			}
+
+			$links = $this->extractLinksFromHtml( $page['html'], self::CRAWL_LINK_CHECK_CAP );
+
+			foreach ( $links as $link ) {
+				if ( $count >= self::CRAWL_LINK_CHECK_CAP ) {
+					break;
+				}
+
+				$absoluteUrl = $this->resolveRedirectUrl( $link['url'], $page['url'] );
+				$linkHost    = strtolower( (string) wp_parse_url( $absoluteUrl, PHP_URL_HOST ) );
+
+				if ( '' !== $homeHost && $linkHost !== $homeHost ) {
+					continue;
+				}
+
+				if ( isset( $checked[ $absoluteUrl ] ) ) {
+					continue;
+				}
+				$checked[ $absoluteUrl ] = true;
+				++$count;
+
+				$status = $this->checkUrlStatus( $absoluteUrl );
+				if ( $status < 200 || $status >= 400 ) {
+					$broken[] = [
+						'url'      => $absoluteUrl,
+						'status'   => $status,
+						'found_on' => $page['url'],
+					];
+				}
+			}
+		}
+
+		return $broken;
+	}
+
+	/**
+	 * @return array<int, array{url: string, status: int, found_on: string}>|null
+	 */
+	private function resolveBrokenMedia(): ?array {
+		$pages = $this->resolveCrawledPages();
+
+		if ( [] === $pages ) {
+			return null;
+		}
+
+		$checked = [];
+		$broken  = [];
+		$count   = 0;
+
+		foreach ( $pages as $page ) {
+			if ( $count >= self::CRAWL_MEDIA_CHECK_CAP ) {
+				break;
+			}
+
+			if ( ! preg_match_all( '/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $page['html'], $matches ) ) {
+				continue;
+			}
+
+			foreach ( $matches[1] as $src ) {
+				if ( $count >= self::CRAWL_MEDIA_CHECK_CAP ) {
+					break;
+				}
+
+				$src = trim( $src );
+				if ( '' === $src || str_starts_with( $src, 'data:' ) ) {
+					continue;
+				}
+
+				$absoluteUrl = $this->resolveRedirectUrl( $src, $page['url'] );
+
+				if ( isset( $checked[ $absoluteUrl ] ) ) {
+					continue;
+				}
+				$checked[ $absoluteUrl ] = true;
+				++$count;
+
+				$status = $this->checkUrlStatus( $absoluteUrl );
+				if ( $status < 200 || $status >= 400 ) {
+					$broken[] = [
+						'url'      => $absoluteUrl,
+						'status'   => $status,
+						'found_on' => $page['url'],
+					];
+				}
+			}
+		}
+
+		return $broken;
+	}
+
+	private function resolveSearchCheckStatus(): ?int {
+		$settings  = (array) get_option( 'wp_security_settings', [] );
+		$searchUrl = isset( $settings['search_url'] ) && '' !== trim( (string) $settings['search_url'] )
+			? (string) $settings['search_url']
+			: rtrim( $this->homeUrl(), '/' ) . '/?s=test';
+
+		$response = wp_remote_get(
+			$searchUrl,
+			[
+				'timeout'     => self::CRAWL_REQUEST_TIMEOUT,
+				'sslverify'   => false,
+				'redirection' => 5,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+
+		return (int) wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
+	 * Checks every {label,url} entry from a settings list (`cta_urls` /
+	 * `key_landing_pages`), capped the same as the link-crawl checks. Always
+	 * returns an array (empty when the setting is unset) — the Check layer
+	 * distinguishes "nothing configured" (SKIPPED) from "configured and
+	 * broken" (WARN) by checking emptiness, not nullness, matching the
+	 * plan's SKIPPED-not-WARN acceptance criterion for these two checks.
+	 *
+	 * @return array<int, array{label: string, url: string, status: int}>
+	 */
+	private function resolveSettingsUrlListStatuses( string $settingsKey ): array {
+		$settings = (array) get_option( 'wp_security_settings', [] );
+		$list     = is_array( $settings[ $settingsKey ] ?? null ) ? $settings[ $settingsKey ] : [];
+
+		$results = [];
+		$count   = 0;
+
+		foreach ( $list as $item ) {
+			if ( $count >= self::CRAWL_LINK_CHECK_CAP ) {
+				break;
+			}
+
+			if ( ! is_array( $item ) || empty( $item['url'] ) ) {
+				continue;
+			}
+
+			$url   = (string) $item['url'];
+			$label = ! empty( $item['label'] ) ? (string) $item['label'] : $url;
+
+			$results[] = [
+				'label'  => $label,
+				'url'    => $url,
+				'status' => $this->checkUrlStatus( $url ),
+			];
+			++$count;
+		}
+
+		return $results;
+	}
+
+	private function resolveSettingsBool( string $settingsKey ): bool {
+		$settings = (array) get_option( 'wp_security_settings', [] );
+		return ! empty( $settings[ $settingsKey ] );
+	}
+
+	private function resolveCookieConsentCustomSignature(): ?string {
+		$settings = (array) get_option( 'wp_security_settings', [] );
+		$value    = isset( $settings['cookie_consent_custom_signature'] ) ? trim( (string) $settings['cookie_consent_custom_signature'] ) : '';
+		return '' === $value ? null : $value;
 	}
 }

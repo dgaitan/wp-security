@@ -140,6 +140,10 @@ final class FakeWpdb extends wpdb {
 			return null;
 		}
 
+		if ( preg_match( '/ORDER BY id DESC/i', $query ) ) {
+			usort( $rows, static fn ( array $a, array $b ): int => (int) $b['id'] <=> (int) $a['id'] );
+		}
+
 		return $rows[0] ?? null;
 	}
 
@@ -194,6 +198,7 @@ final class FakeWpdb extends wpdb {
 			$this->prefix . 'wpsec_scan_runs',
 			$this->prefix . 'wpsec_logins',
 			$this->prefix . 'wpsec_remediation_log',
+			$this->prefix . 'wpsec_maintenance_notes',
 		];
 		foreach ( $known as $table ) {
 			if ( str_contains( $query, $table ) ) {

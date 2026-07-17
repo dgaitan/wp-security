@@ -9,9 +9,11 @@ use WPSecurity\Admin\RemediationRegistry;
 use WPSecurity\Contracts\Context;
 use WPSecurity\Contracts\Scanner;
 use WPSecurity\Persistence\FindingRepository;
+use WPSecurity\Persistence\MaintenanceNotesRepository;
 use WPSecurity\Persistence\RemediationLogRepository;
 use WPSecurity\Persistence\ScanRunRepository;
 use WPSecurity\Rest\DashboardController;
+use WPSecurity\Rest\MaintenanceReportController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\RemediationsController;
 use WPSecurity\Rest\ScansController;
@@ -58,6 +60,15 @@ final class RestServiceProvider extends ServiceProvider {
 				$c->get( RemediationRegistry::class ),
 				$c->get( RemediationLogRepository::class ),
 				$c->get( Context::class ),
+			)
+		);
+
+		$this->container->singleton(
+			MaintenanceReportController::class,
+			static fn ( Container $c ): MaintenanceReportController => new MaintenanceReportController(
+				$c->get( RemediationLogRepository::class ),
+				$c->get( FindingRepository::class ),
+				$c->get( MaintenanceNotesRepository::class ),
 			)
 		);
 	}

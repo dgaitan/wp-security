@@ -14,6 +14,7 @@ use WPSecurity\Container\ScanningServiceProvider;
 use WPSecurity\Container\ServiceProvider;
 use WPSecurity\Persistence\Migrator;
 use WPSecurity\Rest\DashboardController;
+use WPSecurity\Rest\MaintenanceReportController;
 use WPSecurity\Rest\ModulesController;
 use WPSecurity\Rest\RemediationsController;
 use WPSecurity\Rest\ScansController;
@@ -23,7 +24,10 @@ use WPSecurity\Modules\CoreIntegrity\CoreIntegrityModule;
 use WPSecurity\Modules\CoreIntegrity\Remediations\CoreUpdateRemediation;
 use WPSecurity\Modules\Database\DatabaseModule;
 use WPSecurity\Modules\Dns\DnsModule;
+use WPSecurity\Modules\FunctionalQa\FunctionalQaModule;
+use WPSecurity\Modules\FunctionalQa\Remediations\ContactFormTestAction;
 use WPSecurity\Modules\Headers\HeadersModule;
+use WPSecurity\Modules\MarketingAnalytics\MarketingAnalyticsModule;
 use WPSecurity\Modules\Performance\PerformanceModule;
 use WPSecurity\Modules\PluginsThemes\PluginsThemesModule;
 use WPSecurity\Modules\PluginsThemes\Remediations\PluginUpdateRemediation;
@@ -154,6 +158,8 @@ final class Plugin {
 					new PerformanceModule(),
 					new AccessibilityModule(),
 					new SeoModule(),
+					new FunctionalQaModule(),
+					new MarketingAnalyticsModule(),
 				]
 			)
 		);
@@ -168,6 +174,7 @@ final class Plugin {
 					new PluginUpdateRemediation(),
 					new ThemeUpdateRemediation(),
 					new CoreUpdateRemediation(),
+					new ContactFormTestAction(),
 				]
 			)
 		);
@@ -184,6 +191,7 @@ final class Plugin {
 				$container->get( ModulesController::class )->register();
 				$container->get( SettingsController::class )->register();
 				$container->get( RemediationsController::class )->register();
+					$container->get( MaintenanceReportController::class )->register();
 			}
 		);
 
